@@ -289,6 +289,32 @@ options:
         description: |
             Defines the IP or Host Name to send snmp traps to. Leave blank (empty) to disable
             the traps functionality.
+    traps_service_notification_options:
+        default: "w,u,c,r"
+        type: string
+        description: |
+            This directive is used to define the service states for which notifications
+            can be sent out to the default traps contact.  Valid options are a combination of one
+            or more of the following:
+            w = notify on WARNING service states,
+            u = notify on UNKNOWN service states,
+            c = notify on CRITICAL service states,
+            r = notify on service recoveries (OK states),
+            f = notify when the service starts and stops flapping.
+            If you specify n (none) as an option, the contact will not receive any type of service notifications.
+    traps_host_notification_options:
+        default: "d,r"
+        type: string
+        description: |
+            This directive is used to define the host states for which notifications
+            can be sent out to the default traps contact.  Valid options are a combination of one
+            or more of the following:
+            d = notify on DOWN host states,
+            u = notify on UNREACHABLE host states,
+            r = notify on host recoveries (UP states),
+            f = notify when the host starts and stops flapping,
+            s = send notifications when host or service scheduled downtime starts and ends.
+            If you specify n (none) as an option, the contact will not receive any type of host notifications.
     extra_contacts:
         default: ''
         type: string
