@@ -171,32 +171,33 @@ def fixpath(path):
 
 
 def enable_livestatus_config():
-    if enable_livestatus:
-        hookenv.log("Livestatus is enabled")
-        fetch.apt_update()
-        fetch.apt_install("check-mk-livestatus")
+    livestatus_dir = os.path.dirname(livestatus_path)
+    hookenv.log("Livestatus is enabled")
+    if not os.path.isdir(livestatus_dir):
+        hookenv.log("Making path for livestatus_dir")
+        mkdir_p(livestatus_dir)
+    # fix perms on livestatus dir
+    hookenv.log("Fixing perms on livestatus_path")
+    fixpath(livestatus_dir)
+    fetch.apt_update()
+    install_packages = fetch.filter_installed_packages(["check-mk-livestatus"])
+    if install_packages:
+        fetch.apt_install()
+        # This needs a nagios restart to actually make the socket
+        host.service_reload("nagios3")
 
-        # Make the directory and fix perms on it
-        hookenv.log("Fixing perms on livestatus_path")
-        livestatus_dir = os.path.dirname(livestatus_path)
-
-        if not os.path.isdir(livestatus_dir):
-            hookenv.log("Making path for livestatus_dir")
-            mkdir_p(livestatus_dir)
-        fixpath(livestatus_dir)
-
-        # Fix the perms on the socket
-        hookenv.log("Fixing perms on the socket")
-        uid = pwd.getpwnam(nagios_user).pw_uid
-        gid = grp.getgrnam("www-data").gr_gid
-        os.chown(livestatus_path, uid, gid)
-        os.chown(livestatus_dir, uid, gid)
-        st = os.stat(livestatus_path)
-        os.chmod(livestatus_path, st.st_mode | stat.S_IRGRP)
-        os.chmod(
-            livestatus_dir,
-            st.st_mode | stat.S_IRGRP | stat.S_ISGID | stat.S_IXUSR | stat.S_IXGRP,
-        )
+    # Fix the perms on the socket
+    hookenv.log("Fixing perms on the socket")
+    uid = pwd.getpwnam(nagios_user).pw_uid
+    gid = grp.getgrnam("www-data").gr_gid
+    os.chown(livestatus_path, uid, gid)
+    os.chown(livestatus_dir, uid, gid)
+    st = os.stat(livestatus_path)
+    os.chmod(livestatus_path, st.st_mode | stat.S_IRGRP)
+    os.chmod(
+        livestatus_dir,
+        st.st_mode | stat.S_IRGRP | stat.S_ISGID | stat.S_IXUSR | stat.S_IXGRP,
+    )
 
 
 def enable_pagerduty_config():
@@ -627,7 +628,6 @@ if ssl_configured():
 enable_pagerduty_config()
 update_contacts()
 update_config()
-enable_livestatus_config()
 update_apache()
 update_localhost()
 update_cgi_config()
@@ -639,6 +639,8 @@ if password:
 
 if nagiosadmin != "nagiosadmin":
     update_password("nagiosadmin", False)
+if enable_livestatus:
+    enable_livestatus_config()
 
 subprocess.call(["scripts/postfix_loopback_only.sh"])
 subprocess.call(["hooks/mymonitors-relation-joined"])
