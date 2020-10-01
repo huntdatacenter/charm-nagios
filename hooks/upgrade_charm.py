@@ -180,9 +180,9 @@ def enable_livestatus_config():
     hookenv.log("Fixing perms on livestatus_path")
     fixpath(livestatus_dir)
     fetch.apt_update()
-    install_packages = fetch.filter_installed_packages(["check-mk-livestatus"])
-    if install_packages:
-        fetch.apt_install()
+    missing_packages = fetch.filter_installed_packages(["check-mk-livestatus"])
+    if missing_packages:
+        fetch.apt_install(missing_packages)
         # This needs a nagios restart to actually make the socket
         host.service_reload("nagios3")
 
