@@ -1,0 +1,19 @@
+service livestatus
+{
+        type            = UNLISTED
+        socket_type     = stream
+        protocol        = tcp
+        wait            = no
+        cps             = 100 3
+        instances       = 500
+        per_source      = 250
+        flags           = NODELAY
+    {%- if xinetd_only_from %}
+        only_from       = {{ xinetd_only_from }}
+    {%- endif %}
+        disable         = no
+        port            = {{ xinetd_port }}
+        user            = nagios
+        server          = /usr/bin/unixcat
+        server_args     = {{ livestatus_path }}
+}

@@ -57,6 +57,17 @@ async def livestatus_path(unit):
         yield app_config["livestatus_path"]["value"]
 
 
+@pytest.fixture
+async def livestatus_socket(unit):
+    """Enable livestatus socket before a test, then disable after test.
+
+    :param Agent unit:              unit from the fixture
+    """
+    async with config(unit, "livestatus_enable_xinetd", "true", "false"):
+        app_config = await unit.application.get_config()
+        yield app_config["livestatus_enable_xinetd"]["value"]
+
+
 @pytest.fixture()
 async def enable_pagerduty(unit):
     """Enable enable_pagerduty before first test, then disable after last test.
@@ -120,6 +131,13 @@ async def test_extra_config(auth, unit):
 async def test_live_status(unit, livestatus_path, file_stat):
     stat = await file_stat(livestatus_path, unit.u)
     assert stat["size"] == 0, "File %s didn't match expected size" % livestatus_path
+
+
+async def test_livestatus_xinetd(unit, livestatus_path, livestatus_socket, run_command):
+    assert livestatus_socket is True, "Livestatus xinetd is not enabled"
+    out = await run_command(
+        "echo -e 'GET hosts\nColumns: name\n' | nc 127.0.0.1 6557", unit.u)
+    assert "nagios" in out["Stdout"], "Livestatus output is not expected"
 
 
 async def test_pager_duty(unit, enable_pagerduty, file_stat):

@@ -58,6 +58,25 @@ options:
         default: ""
         description: |
             Arguments to be passed to the livestatus module, defaults to empty.
+    livestatus_enable_xinetd:
+        type: boolean
+        default: false
+        description: |
+            Expose livestatus socket through a network port using xinetd.
+            NOTE: this socket does not support authentication nor authorization, so exposing it to the
+            network will enable everyone to query it, so it is recommended to limit the hosts that
+            can send queries by listing those hosts in the the livestatus_xinetd_only_from option.
+    livestatus_xinetd_port:
+        type: string
+        default: '6557'
+        description: |
+            Port to be used for livestatus through xinetd.
+    livestatus_xinetd_only_from:
+        type: string
+        default: '127.0.0.1'
+        description: |
+            List of space-separated IPs that will be able to access livestatus through xinetd. If left empty,
+            only localhost will be able to access it.
     nagios_user:
         type: string
         default: nagios

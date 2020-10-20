@@ -54,6 +54,11 @@ ro_password = hookenv.config("ro-password")
 nagiosadmin = hookenv.config("nagiosadmin") or "nagiosadmin"
 contactgroup_members = hookenv.config("contactgroup-members")
 
+livestatus_xinetd_path = "/etc/xinetd.d/livestatus"
+livestatus_enable_xinetd = hookenv.config("livestatus_enable_xinetd")
+livestatus_xinetd_port = hookenv.config("livestatus_xinetd_port")
+livestatus_xinetd_only_from = hookenv.config("livestatus_xinetd_only_from")
+
 # this global var will collect contactgroup members that must be forced
 # it will be changed by functions
 forced_contactgroup_members = []
@@ -616,6 +621,33 @@ def update_password(account, password):
         subprocess.call(["htpasswd", "-D", "/etc/nagios3/htpasswd.users", account])
 
 
+def configure_livestatus_xinetd():
+    if not enable_livestatus or not livestatus_enable_xinetd:
+        hookenv.log("Livestatus xinetd not enabled, skipping...", "INFO")
+        return
+
+    hookenv.log("Configuring livestatus xinetd...", "INFO")
+
+    fetch.apt_update()
+    fetch.apt_install("xinetd")
+
+    template_values = {
+        "livestatus_path": livestatus_path,
+        "xinetd_port": livestatus_xinetd_port,
+        "xinetd_only_from": livestatus_xinetd_only_from,
+    }
+
+    with open("hooks/templates/livestatus.tmpl", "r") as f:
+        template_def = f.read()
+
+    t = Template(template_def)
+    with open(livestatus_xinetd_path, "w") as f:
+        f.write(t.render(template_values))
+
+    host.service_reload("xinetd")
+    hookenv.log("Livestatus xinetd configured.", "INFO")
+
+
 warn_legacy_relations()
 write_extra_config()
 # enable_traps_config and enable_pagerduty_config modify forced_contactgroup_members
@@ -633,6 +665,7 @@ update_localhost()
 update_cgi_config()
 update_contacts()
 update_password("nagiosro", ro_password)
+configure_livestatus_xinetd()
 
 if password:
     update_password(nagiosadmin, password)
