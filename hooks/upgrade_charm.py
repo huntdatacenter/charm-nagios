@@ -280,7 +280,15 @@ def enable_traps_config():
     if "managementstation" not in contactgroup_members:
         forced_contactgroup_members.append("managementstation")
 
-    template_values = {"send_traps_to": send_traps_to}
+    template_values = {
+        "send_traps_to": send_traps_to,
+        "traps_service_notification_options": hookenv.config(
+            "traps_service_notification_options"
+        ),
+        "traps_host_notification_options": hookenv.config(
+            "traps_host_notification_options"
+        ),
+    }
 
     with open("hooks/templates/traps.tmpl", "r") as f:
         template_def = f.read()

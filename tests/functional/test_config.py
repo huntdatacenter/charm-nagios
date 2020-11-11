@@ -68,6 +68,17 @@ async def enable_pagerduty(unit):
         yield app_config["pagerduty_path"]["value"]
 
 
+@pytest.fixture()
+async def enable_snmp_traps(unit):
+    """Set send_traps_to before first test, then disable after last test.
+
+    :param Agent unit:              unit from the fixture
+    """
+    async with config(unit, "send_traps_to", "127.0.0.1", ""):
+        app_config = await unit.application.get_config()
+        yield app_config["send_traps_to"]["value"]
+
+
 @pytest.fixture
 async def set_extra_contacts(unit):
     """Set extra contacts."""
@@ -127,6 +138,16 @@ async def test_pager_duty(unit, enable_pagerduty, file_stat):
     assert stat["size"] != 0, "Directory %s wasn't a non-zero size" % enable_pagerduty
     stat = await file_stat("/etc/nagios3/conf.d/pagerduty_nagios.cfg", unit.u)
     assert stat["size"] != 0, "pagerduty_config wasn't a non-zero sized file"
+
+
+async def test_snmp_traps(unit, enable_snmp_traps, file_stat, file_contents):
+    traps_cfg_path = "/etc/nagios3/conf.d/traps.cfg"
+    stat = await file_stat(traps_cfg_path, unit.u)
+    assert stat["size"] != 0, "snmp traps config wasn't a non-zero sized file"
+    traps_cfg_content = await file_contents(traps_cfg_path, unit.u)
+    assert (
+        enable_snmp_traps in traps_cfg_content
+    ), "snmp traps target missing from traps cfg"
 
 
 async def test_extra_contacts(auth, unit, set_extra_contacts):
