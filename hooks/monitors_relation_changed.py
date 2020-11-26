@@ -21,25 +21,14 @@ import re
 import sys
 from collections import defaultdict
 
-from charmhelpers.core.hookenv import (
-    DEBUG,
-    ingress_address,
-    log,
-    related_units,
-    relation_get,
-    relation_ids,
-)
-
-from common import (
-    customize_service,
-    flush_inprogress_config,
-    get_pynag_host,
-    get_pynag_service,
-    initialize_inprogress_config,
-    refresh_hostgroups,
-)
-
 import yaml
+
+from charmhelpers.core.hookenv import (DEBUG, ingress_address, log,
+                                       related_units, relation_get,
+                                       relation_ids)
+from common import (customize_service, flush_inprogress_config, get_pynag_host,
+                    get_pynag_service, initialize_inprogress_config,
+                    refresh_hostgroups)
 
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", "target-id"]
 
@@ -184,6 +173,13 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
             for mon_name, mon in mons.iteritems():
                 service_name = "%s-%s" % (target_id, mon_name)
                 service = get_pynag_service(target_id, service_name)
+                try:
+                    if mon.get("max_check_attempts"):
+                        service.set_attribute(
+                            "max_check_attempts", mon["max_check_attempts"]
+                        )
+                except AttributeError:  # mon is a string
+                    pass
 
                 if customize_service(service, mon_family, mon_name, mon):
                     service.save()
