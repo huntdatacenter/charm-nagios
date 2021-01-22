@@ -21,14 +21,25 @@ import re
 import sys
 from collections import defaultdict
 
-import yaml
+from charmhelpers.core.hookenv import (
+    DEBUG,
+    ingress_address,
+    log,
+    related_units,
+    relation_get,
+    relation_ids,
+)
 
-from charmhelpers.core.hookenv import (DEBUG, ingress_address, log,
-                                       related_units, relation_get,
-                                       relation_ids)
-from common import (customize_service, flush_inprogress_config, get_pynag_host,
-                    get_pynag_service, initialize_inprogress_config,
-                    refresh_hostgroups)
+from common import (
+    customize_service,
+    flush_inprogress_config,
+    get_pynag_host,
+    get_pynag_service,
+    initialize_inprogress_config,
+    refresh_hostgroups,
+)
+
+import yaml
 
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", "target-id"]
 
