@@ -183,9 +183,10 @@ def enable_livestatus_config():
     missing_packages = fetch.filter_installed_packages(["check-mk-livestatus"])
     if missing_packages:
         fetch.apt_install(missing_packages)
+
+    if not os.path.exists(livestatus_path):
         # This needs a nagios restart to actually make the socket
         host.service_reload("nagios3")
-
     # Fix the perms on the socket
     hookenv.log("Fixing perms on the socket")
     uid = pwd.getpwnam(nagios_user).pw_uid
