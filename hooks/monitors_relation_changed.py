@@ -186,9 +186,7 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
                 service = get_pynag_service(target_id, service_name)
                 try:
                     check_attempts = int(mon.get("max_check_attempts"))
-                    service.set_attribute(
-                        "max_check_attempts", check_attempts
-                    )
+                    service.set_attribute("max_check_attempts", check_attempts)
                 except AttributeError:  # mon is a string
                     pass
                 except TypeError:  # max_check_attempts is None
