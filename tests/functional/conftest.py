@@ -190,7 +190,7 @@ pytestmark = pytest.mark.asyncio
 
 CHARM_BUILD_DIR = os.getenv("CHARM_BUILD_DIR", "..").rstrip("/")
 
-SERIES = ["trusty", "xenial", "bionic"]
+SERIES = ["xenial", "bionic"]
 
 
 ############
