@@ -626,7 +626,7 @@ def update_password(account, password):
             ["htpasswd", "-b", "/etc/nagios3/htpasswd.users", account, password]
         )
     else:
-        """ password was empty, it has been removed. We should delete the account """
+        """password was empty, it has been removed. We should delete the account"""
         os.path.isfile(account_file) and os.remove(account_file)
         subprocess.call(["htpasswd", "-D", "/etc/nagios3/htpasswd.users", account])
 
