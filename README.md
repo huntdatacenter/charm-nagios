@@ -89,16 +89,16 @@ Will get you the public IP of the web interface.
 #### Typical SSL Workflow for Self Signed Keys:
 
     juju deply nagios central-monitor
-    juju set central-monitor ssl=on
+    juju config central-monitor ssl=on
 
 
 If you purchased keys from a certificate authority:
 
     juju deply nagios central-monitor
-    juju set central-monitor ssl_cert=`base64 mykey.pem`
-    juju set central-monitor ssl_key=`base64 mykey.key`
-    juju set central-monitor ssl_chain=`base64 mykey.csr`
-    juju set central-monitor ssl=on
+    juju config central-monitor ssl_cert=`base64 mykey.pem`
+    juju config central-monitor ssl_key=`base64 mykey.key`
+    juju config central-monitor ssl_chain=`base64 mykey.csr`
+    juju config central-monitor ssl=on
 
 
 ### Known Issues / Caveates
