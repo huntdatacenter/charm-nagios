@@ -42,6 +42,7 @@ from common import (
 import yaml
 
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", "target-id"]
+MODEL_ID_KEY = 'model_id'
 
 
 def _prepare_relation_data(unit, rid):
@@ -123,21 +124,33 @@ def main(argv):  # noqa: C901
                 if relid not in new_all_relations:
                     new_all_relations[relid] = {}
                 new_all_relations[relid][unit] = relation_settings
+
     all_relations = new_all_relations
 
     initialize_inprogress_config()
+
     # make a dict of machine ids to target-id hostnames
     all_hosts = {}
-
     for relid, units in all_relations.items():
         for unit, relation_settings in units.iteritems():
             machine_id = relation_settings.get("machine_id", None)
+            model_id = relation_settings.get(MODEL_ID_KEY, None)
 
-            if machine_id:
+            if not machine_id:
+                continue
+
+            # Backwards compatable host name from machine id
+            if not model_id:
                 all_hosts[machine_id] = relation_settings["target-id"]
+            # New host name from machine id using model id
+            else:
+                model_hosts = all_hosts.get(model_id, {})
+                model_hosts[machine_id] = relation_settings["target-id"]
+                all_hosts[model_id] = model_hosts
 
     for relid, units in all_relations.items():
         apply_relation_config(relid, units, all_hosts)
+
     refresh_hostgroups()
     flush_inprogress_config()
     os.system("service nagios3 reload")
@@ -149,14 +162,24 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
         target_id = relation_settings["target-id"]
         machine_id = relation_settings.get("machine_id", None)
         parent_host = None
+        model_id = None
+
+        if MODEL_ID_KEY in relation_settings.keys():
+            model_id = relation_settings[MODEL_ID_KEY]
 
         if machine_id:
-            container_regex = re.compile(r"(\d+)/lx[cd]/\d+")
 
+            container_regex = re.compile(r"(\d+)/lx[cd]/\d+")
             if container_regex.search(machine_id):
                 parent_machine = container_regex.search(machine_id).group(1)
 
-                if parent_machine in all_hosts:
+                # Get host names using model ids
+                if model_id:
+                    if parent_machine in all_hosts[model_id]:
+                        parent_host = all_hosts[model_id][parent_machine]
+
+                # Get host names without model ids
+                elif parent_machine in all_hosts:
                     parent_host = all_hosts[parent_machine]
 
         # If not set, we don't mess with it, as multiple services may feed
