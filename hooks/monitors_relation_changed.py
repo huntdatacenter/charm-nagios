@@ -42,8 +42,10 @@ from common import (
 
 import yaml
 
-REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", "target-id"]
+MACHINE_ID_KEY = "machine_id"
 MODEL_ID_KEY = "model_id"
+TARGET_ID_KEY = "target-id"
+REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", TARGET_ID_KEY]
 
 
 def _prepare_relation_data(unit, rid):
@@ -59,7 +61,7 @@ def _prepare_relation_data(unit, rid):
 
     if rid.split(":")[0] == "nagios":
         # Fake it for the more generic 'nagios' relation
-        relation_data["target-id"] = unit.replace("/", "-")
+        relation_data[TARGET_ID_KEY] = unit.replace("/", "-")
         relation_data["monitors"] = {"monitors": {"remote": {}}}
 
     if not relation_data.get("target-address"):
@@ -102,7 +104,7 @@ def main(argv):  # noqa: C901
     #
 
     if len(argv) > 1:
-        relation_settings = {"monitors": open(argv[1]).read(), "target-id": argv[2]}
+        relation_settings = {"monitors": open(argv[1]).read(), TARGET_ID_KEY: argv[2]}
 
         if len(argv) > 3:
             relation_settings["target-address"] = argv[3]
@@ -115,13 +117,13 @@ def main(argv):  # noqa: C901
 
     for relid, units in all_relations.iteritems():
         for unit, relation_settings in units.items():
-            if "target-id" in relation_settings:
-                targets_with_addresses.add(relation_settings["target-id"])
+            if TARGET_ID_KEY in relation_settings:
+                targets_with_addresses.add(relation_settings.get(TARGET_ID_KEY))
     new_all_relations = {}
 
     for relid, units in all_relations.iteritems():
         for unit, relation_settings in units.items():
-            if relation_settings["target-id"] in targets_with_addresses:
+            if relation_settings.get(TARGET_ID_KEY) in targets_with_addresses:
                 if relid not in new_all_relations:
                     new_all_relations[relid] = {}
                 new_all_relations[relid][unit] = relation_settings
@@ -131,40 +133,40 @@ def main(argv):  # noqa: C901
     initialize_inprogress_config()
 
     uniq_hostnames = set()
-    duplicate_hostnames = {}
+    duplicate_hostnames = defaultdict(int)
 
-    def _count_hostname(hostname):
+    def record_hostname(hostname):
         if hostname not in uniq_hostnames:
             uniq_hostnames.add(hostname)
         else:
-            duplicate_hostnames[hostname] = duplicate_hostnames.get(hostname, 0) + 1
+            duplicate_hostnames[hostname] += 1
 
     # make a dict of machine ids to target-id hostnames
     all_hosts = {}
     for relid, units in all_relations.items():
         for unit, relation_settings in units.iteritems():
-            machine_id = relation_settings.get("machine_id", None)
+            machine_id = relation_settings.get(MACHINE_ID_KEY, None)
             model_id = relation_settings.get(MODEL_ID_KEY, None)
-            target_id = relation_settings["target-id"]
+            target_id = relation_settings.get(TARGET_ID_KEY, None)
 
-            if not machine_id:
+            if not machine_id or not target_id:
                 continue
 
             # Check for duplicate hostnames and amend them if needed
-            _count_hostname(target_id)
-            if target_id in duplicate_hostnames.keys():
-                target_id += "-{}".format(duplicate_hostnames[target_id])
-                all_relations[relid][unit]["target-id"] = target_id
+            record_hostname(target_id)
+            if target_id in duplicate_hostnames:
+                target_id += "-[{}]".format(duplicate_hostnames[target_id])
+                relation_settings[TARGET_ID_KEY] = target_id
 
             # Backwards compatible hostname from machine id
             if not model_id:
-                all_hosts[machine_id] = relation_settings["target-id"]
+                all_hosts[machine_id] = target_id
             # New hostname from machine id using model id
             else:
                 all_hosts.setdefault(model_id, {})
-                all_hosts[model_id][machine_id] = relation_settings["target-id"]
+                all_hosts[model_id][machine_id] = target_id
 
-    if len(duplicate_hostnames.keys()):
+    if duplicate_hostnames:
         status_set(
             "active",
             "Duplicate host names detected: {}".format(
@@ -172,7 +174,7 @@ def main(argv):  # noqa: C901
             ),
         )
     else:
-        status_set("active", "")
+        status_set("active", "ready")
 
     for relid, units in all_relations.items():
         apply_relation_config(relid, units, all_hosts)
@@ -185,8 +187,8 @@ def main(argv):  # noqa: C901
 def apply_relation_config(relid, units, all_hosts):  # noqa: C901
     for unit, relation_settings in units.iteritems():
         monitors = relation_settings["monitors"]
-        target_id = relation_settings["target-id"]
-        machine_id = relation_settings.get("machine_id", None)
+        target_id = relation_settings[TARGET_ID_KEY]
+        machine_id = relation_settings.get(MACHINE_ID_KEY, None)
         parent_host = None
         model_id = None
 
