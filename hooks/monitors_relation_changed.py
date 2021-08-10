@@ -28,6 +28,7 @@ from charmhelpers.core.hookenv import (
     related_units,
     relation_get,
     relation_ids,
+    status_set,
 )
 
 from common import (
@@ -147,6 +148,31 @@ def main(argv):  # noqa: C901
                 model_hosts = all_hosts.get(model_id, {})
                 model_hosts[machine_id] = relation_settings["target-id"]
                 all_hosts[model_id] = model_hosts
+
+    # Check for duplicate host names
+    uniq_hostnames = set()
+    duplicate_hostnames = set()
+
+    def _count_hostname(hostname):
+        if hostname not in uniq_hostnames:
+            uniq_hostnames.add(hostname)
+        else:
+            duplicate_hostnames.add(hostname)
+
+    for value in all_hosts.values():
+        if isinstance(value, str):
+            _count_hostname(value)
+        else:
+            for hostname in value.values():
+                _count_hostname(hostname)
+
+    if len(duplicate_hostnames):
+        status_set(
+            "active",
+            "Duplicate host names detected: {}".format(", ".join(duplicate_hostnames)),
+        )
+    else:
+        status_set("active", "")
 
     for relid, units in all_relations.items():
         apply_relation_config(relid, units, all_hosts)
