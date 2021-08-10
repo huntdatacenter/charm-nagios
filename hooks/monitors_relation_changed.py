@@ -130,46 +130,47 @@ def main(argv):  # noqa: C901
 
     initialize_inprogress_config()
 
+    uniq_hostnames = set()
+    duplicate_hostnames = {}
+
+    def _count_hostname(hostname):
+        if hostname not in uniq_hostnames:
+            uniq_hostnames.add(hostname)
+        else:
+            duplicate_hostnames[hostname] = duplicate_hostnames.get(hostname, 0) + 1
+
     # make a dict of machine ids to target-id hostnames
     all_hosts = {}
     for relid, units in all_relations.items():
         for unit, relation_settings in units.iteritems():
             machine_id = relation_settings.get("machine_id", None)
             model_id = relation_settings.get(MODEL_ID_KEY, None)
+            target_id = relation_settings["target-id"]
 
             if not machine_id:
                 continue
 
+            # Check for duplicate hostnames and amend them if needed
+            _count_hostname(target_id)
+            if target_id in duplicate_hostnames.keys():
+                target_id += "-{}".format(duplicate_hostnames[target_id])
+                all_relations[relid][unit]["target-id"] = target_id
+
             # Backwards compatable host name from machine id
             if not model_id:
-                all_hosts[machine_id] = relation_settings["target-id"]
+                all_hosts[machine_id] = target_id
             # New host name from machine id using model id
             else:
                 model_hosts = all_hosts.get(model_id, {})
-                model_hosts[machine_id] = relation_settings["target-id"]
+                model_hosts[machine_id] = target_id
                 all_hosts[model_id] = model_hosts
 
-    # Check for duplicate host names
-    uniq_hostnames = set()
-    duplicate_hostnames = set()
-
-    def _count_hostname(hostname):
-        if hostname not in uniq_hostnames:
-            uniq_hostnames.add(hostname)
-        else:
-            duplicate_hostnames.add(hostname)
-
-    for value in all_hosts.values():
-        if isinstance(value, str):
-            _count_hostname(value)
-        else:
-            for hostname in value.values():
-                _count_hostname(hostname)
-
-    if len(duplicate_hostnames):
+    if len(duplicate_hostnames.keys()):
         status_set(
             "active",
-            "Duplicate host names detected: {}".format(", ".join(duplicate_hostnames)),
+            "Duplicate host names detected: {}".format(
+                ", ".join(duplicate_hostnames.keys())
+            ),
         )
     else:
         status_set("active", "")
