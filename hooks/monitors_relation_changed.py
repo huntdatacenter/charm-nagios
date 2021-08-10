@@ -42,7 +42,7 @@ from common import (
 import yaml
 
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", "target-id"]
-MODEL_ID_KEY = 'model_id'
+MODEL_ID_KEY = "model_id"
 
 
 def _prepare_relation_data(unit, rid):
