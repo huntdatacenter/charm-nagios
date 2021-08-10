@@ -139,14 +139,13 @@ def main(argv):  # noqa: C901
             if not machine_id:
                 continue
 
-            # Backwards compatable host name from machine id
+            # Backwards compatible hostname from machine id
             if not model_id:
                 all_hosts[machine_id] = relation_settings["target-id"]
-            # New host name from machine id using model id
+            # New hostname from machine id using model id
             else:
-                model_hosts = all_hosts.get(model_id, {})
-                model_hosts[machine_id] = relation_settings["target-id"]
-                all_hosts[model_id] = model_hosts
+                all_hosts.setdefault(model_id, {})
+                all_hosts[model_id][machine_id] = relation_settings["target-id"]
 
     for relid, units in all_relations.items():
         apply_relation_config(relid, units, all_hosts)
@@ -165,7 +164,7 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
         model_id = None
 
         if MODEL_ID_KEY in relation_settings.keys():
-            model_id = relation_settings[MODEL_ID_KEY]
+            model_id = relation_settings.get(MODEL_ID_KEY)
 
         if machine_id:
 
@@ -173,12 +172,14 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
             if container_regex.search(machine_id):
                 parent_machine = container_regex.search(machine_id).group(1)
 
-                # Get host names using model ids
+                # Get hostname using model id
                 if model_id:
-                    if parent_machine in all_hosts[model_id]:
-                        parent_host = all_hosts[model_id][parent_machine]
+                    model_hosts = all_hosts.get(model_id, {})
+                    parent_host = model_hosts.get(parent_machine, None)
 
-                # Get host names without model ids
+                # Get hostname without model id
+                # this conserves backwards compatibility with older
+                # versions of charm-nrpe that don't provide model_id
                 elif parent_machine in all_hosts:
                     parent_host = all_hosts[parent_machine]
 
