@@ -145,9 +145,9 @@ def main(argv):  # noqa: C901
     all_hosts = {}
     for relid, units in all_relations.items():
         for unit, relation_settings in units.iteritems():
-            machine_id = relation_settings.get(MACHINE_ID_KEY, None)
-            model_id = relation_settings.get(MODEL_ID_KEY, None)
-            target_id = relation_settings.get(TARGET_ID_KEY, None)
+            machine_id = relation_settings.get(MACHINE_ID_KEY)
+            model_id = relation_settings.get(MODEL_ID_KEY)
+            target_id = relation_settings.get(TARGET_ID_KEY)
 
             if not machine_id or not target_id:
                 continue
@@ -188,10 +188,10 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
     for unit, relation_settings in units.iteritems():
         monitors = relation_settings["monitors"]
         target_id = relation_settings[TARGET_ID_KEY]
-        machine_id = relation_settings.get(MACHINE_ID_KEY, None)
+        machine_id = relation_settings.get(MACHINE_ID_KEY)
         parent_host = None
 
-        model_id = relation_settings.get(MODEL_ID_KEY, None)
+        model_id = relation_settings.get(MODEL_ID_KEY)
 
         if machine_id:
 
@@ -202,7 +202,7 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
                 # Get hostname using model id
                 if model_id:
                     model_hosts = all_hosts.get(model_id, {})
-                    parent_host = model_hosts.get(parent_machine, None)
+                    parent_host = model_hosts.get(parent_machine)
 
                 # Get hostname without model id
                 # this conserves backwards compatibility with older
@@ -213,7 +213,7 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
         # If not set, we don't mess with it, as multiple services may feed
         # monitors in for a particular address. Generally a primary will set
         # this to its own private-address
-        target_address = relation_settings.get("target-address", None)
+        target_address = relation_settings.get("target-address")
 
         if type(monitors) != dict:
             monitors = yaml.safe_load(monitors)
