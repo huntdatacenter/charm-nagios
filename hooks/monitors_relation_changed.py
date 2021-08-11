@@ -190,10 +190,8 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
         target_id = relation_settings[TARGET_ID_KEY]
         machine_id = relation_settings.get(MACHINE_ID_KEY, None)
         parent_host = None
-        model_id = None
 
-        if MODEL_ID_KEY in relation_settings.keys():
-            model_id = relation_settings.get(MODEL_ID_KEY)
+        model_id = relation_settings.get(MODEL_ID_KEY, None)
 
         if machine_id:
 
