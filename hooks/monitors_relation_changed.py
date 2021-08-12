@@ -42,6 +42,7 @@ from common import (
 import yaml
 
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", "target-id"]
+MODEL_ID_KEY = "model_id"
 
 
 def _prepare_relation_data(unit, rid):
@@ -123,21 +124,32 @@ def main(argv):  # noqa: C901
                 if relid not in new_all_relations:
                     new_all_relations[relid] = {}
                 new_all_relations[relid][unit] = relation_settings
+
     all_relations = new_all_relations
 
     initialize_inprogress_config()
+
     # make a dict of machine ids to target-id hostnames
     all_hosts = {}
-
     for relid, units in all_relations.items():
         for unit, relation_settings in units.iteritems():
             machine_id = relation_settings.get("machine_id", None)
+            model_id = relation_settings.get(MODEL_ID_KEY, None)
 
-            if machine_id:
+            if not machine_id:
+                continue
+
+            # Backwards compatible hostname from machine id
+            if not model_id:
                 all_hosts[machine_id] = relation_settings["target-id"]
+            # New hostname from machine id using model id
+            else:
+                all_hosts.setdefault(model_id, {})
+                all_hosts[model_id][machine_id] = relation_settings["target-id"]
 
     for relid, units in all_relations.items():
         apply_relation_config(relid, units, all_hosts)
+
     refresh_hostgroups()
     flush_inprogress_config()
     os.system("service nagios3 reload")
@@ -150,13 +162,23 @@ def apply_relation_config(relid, units, all_hosts):  # noqa: C901
         machine_id = relation_settings.get("machine_id", None)
         parent_host = None
 
-        if machine_id:
-            container_regex = re.compile(r"(\d+)/lx[cd]/\d+")
+        model_id = relation_settings.get(MODEL_ID_KEY, None)
 
+        if machine_id:
+
+            container_regex = re.compile(r"(\d+)/lx[cd]/\d+")
             if container_regex.search(machine_id):
                 parent_machine = container_regex.search(machine_id).group(1)
 
-                if parent_machine in all_hosts:
+                # Get hostname using model id
+                if model_id:
+                    model_hosts = all_hosts.get(model_id, {})
+                    parent_host = model_hosts.get(parent_machine, None)
+
+                # Get hostname without model id
+                # this conserves backwards compatibility with older
+                # versions of charm-nrpe that don't provide model_id
+                elif parent_machine in all_hosts:
                     parent_host = all_hosts[parent_machine]
 
         # If not set, we don't mess with it, as multiple services may feed
