@@ -155,6 +155,12 @@ def main(argv):  # noqa: C901
             # Check for duplicate hostnames and amend them if needed
             record_hostname(target_id)
             if target_id in duplicate_hostnames:
+                # Duplicate hostname has been found
+                # Append "-[<number of duplicates>]" hostname
+                # Example:
+                #   1st hostname of "juju-ubuntu-0" is unchanged
+                #   2nd hostname of "juju-ubuntu-0" is changed to "juju-ubuntu-0-[1]"
+                #   3rd hostname of "juju-ubuntu-0" is changed to "juju-ubuntu-0-[2]"
                 target_id += "-[{}]".format(duplicate_hostnames[target_id])
                 relation_settings[TARGET_ID_KEY] = target_id
 
