@@ -23,6 +23,7 @@ from collections import defaultdict
 
 from charmhelpers.core.hookenv import (
     DEBUG,
+    WARNING,
     ingress_address,
     log,
     related_units,
@@ -173,12 +174,11 @@ def main(argv):  # noqa: C901
                 all_hosts[model_id][machine_id] = target_id
 
     if duplicate_hostnames:
-        status_set(
-            "active",
-            "Duplicate host names detected: {}".format(
-                ", ".join(duplicate_hostnames.keys())
-            ),
+        message = "Duplicate host names detected: {}".format(
+            ", ".join(duplicate_hostnames.keys())
         )
+        log(message, level=WARNING)
+        status_set("active", message)
     else:
         status_set("active", "ready")
 
