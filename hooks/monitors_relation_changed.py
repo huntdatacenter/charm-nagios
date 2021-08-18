@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
 import os
 import re
 import sys
@@ -139,34 +140,32 @@ def main(argv):  # noqa: C901
     initialize_inprogress_config()
 
     hosts_to_settings = defaultdict(list)
+    model_ids = set()
     for units in all_relations.values():
         for relation_settings in units.values():
             target_id = relation_settings.get(TARGET_ID_KEY)
             hosts_to_settings[target_id].append(relation_settings)
+            model_id = relation_settings.get(MODEL_ID_KEY)
+            if model_id:
+                model_ids.add(model_id)
+
+    host_prefixes = _compute_host_prefixes(model_ids)
 
     duplicate_hostnames = set()
     all_hosts = {}
     for target_id, relation_settings_list in hosts_to_settings.items():
         for i, relation_settings in enumerate(relation_settings_list):
+            model_id = relation_settings.get(MODEL_ID_KEY)
             if len(relation_settings_list) > 1:
                 duplicate_hostnames.add(target_id)
-
-                # Rename target-id to distinguish hosts with duplicate hostnames.
-                # Create a unique but not too long prefix ID based upon the relation ID
-                # and remote unit.
-                # For example, given:
-                #   rid: monitors:1
-                #   unit: remote-0123456789abcdef0123456789abcdef/1
-                # The unique prefix would be: monitors:1_1_
-                relation_id = relation_settings['metadata']['rid']
-                unit_number = relation_settings['metadata']['unit'].split('/')[-1]
-                unique_prefix = '{}_{}_'.format(relation_id, unit_number)
-                relation_settings[TARGET_ID_KEY] = unique_prefix + target_id
+                if model_id:
+                    unique_prefix = host_prefixes[model_id]
+                else:
+                    unique_prefix = _compute_fallback_host_prefix(relation_settings)
+                relation_settings[TARGET_ID_KEY] = '{}_{}'.format(unique_prefix, target_id)
 
             deduped_target_id = relation_settings[TARGET_ID_KEY]
-
             machine_id = relation_settings.get(MACHINE_ID_KEY)
-            model_id = relation_settings.get(MODEL_ID_KEY)
 
             if not machine_id or not deduped_target_id:
                 continue
@@ -194,6 +193,34 @@ def main(argv):  # noqa: C901
     refresh_hostgroups()
     flush_inprogress_config()
     os.system("service nagios3 reload")
+
+
+def _compute_host_prefixes(model_ids):
+    hashes = {}
+    for model_id in model_ids:
+        hashes[model_id] = hashlib.sha256(model_id.encode()).hexdigest()
+
+    result = {}
+    for i in range(7, 65):
+        for model_id in model_ids:
+            result[model_id] = hashes[model_id][:i]
+        log(repr([i, result]), level=WARNING)
+        if len(set(result.values())) == len(model_ids):
+            break
+    return result
+
+
+def _compute_fallback_host_prefix(relation_settings):
+    # Rename target-id to distinguish hosts with duplicate hostnames.
+    # Create a unique but not too long prefix ID based upon the relation ID
+    # and remote unit.
+    # For example, given:
+    #   rid: monitors:1
+    #   unit: remote-0123456789abcdef0123456789abcdef/1
+    # The unique prefix would be: monitors:1_1_
+    relation_id = relation_settings['metadata']['rid']
+    unit_number = relation_settings['metadata']['unit'].split('/')[-1]
+    return '{}_{}'.format(relation_id, unit_number)
 
 
 def apply_relation_config(relid, units, all_hosts):  # noqa: C901
