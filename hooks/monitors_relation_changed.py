@@ -81,6 +81,11 @@ def _prepare_relation_data(unit, rid):
 
             return {}
 
+    relation_data["metadata"] = {
+        "unit": unit,
+        "rid": rid,
+    }
+
     return relation_data
 
 
@@ -133,49 +138,50 @@ def main(argv):  # noqa: C901
 
     initialize_inprogress_config()
 
-    uniq_hostnames = set()
-    duplicate_hostnames = defaultdict(int)
+    hosts_to_settings = defaultdict(list)
+    for units in all_relations.values():
+        for relation_settings in units.values():
+            target_id = relation_settings.get(TARGET_ID_KEY)
+            hosts_to_settings[target_id].append(relation_settings)
 
-    def record_hostname(hostname):
-        if hostname not in uniq_hostnames:
-            uniq_hostnames.add(hostname)
-        else:
-            duplicate_hostnames[hostname] += 1
-
-    # make a dict of machine ids to target-id hostnames
+    duplicate_hostnames = set()
     all_hosts = {}
-    for relid, units in all_relations.items():
-        for unit, relation_settings in units.iteritems():
+    for target_id, relation_settings_list in hosts_to_settings.items():
+        for i, relation_settings in enumerate(relation_settings_list):
+            if len(relation_settings_list) > 1:
+                duplicate_hostnames.add(target_id)
+
+                # Rename target-id to distinguish hosts with duplicate hostnames.
+                # Create a unique but not too long prefix ID based upon the relation ID
+                # and remote unit.
+                # For example, given:
+                #   rid: monitors:1
+                #   unit: remote-0123456789abcdef0123456789abcdef/1
+                # The unique prefix would be: monitors:1_1_
+                relation_id = relation_settings['metadata']['rid']
+                unit_number = relation_settings['metadata']['unit'].split('/')[-1]
+                unique_prefix = '{}_{}_'.format(relation_id, unit_number)
+                relation_settings[TARGET_ID_KEY] = unique_prefix + target_id
+
+            deduped_target_id = relation_settings[TARGET_ID_KEY]
+
             machine_id = relation_settings.get(MACHINE_ID_KEY)
             model_id = relation_settings.get(MODEL_ID_KEY)
-            target_id = relation_settings.get(TARGET_ID_KEY)
 
-            if not machine_id or not target_id:
+            if not machine_id or not deduped_target_id:
                 continue
-
-            # Check for duplicate hostnames and amend them if needed
-            record_hostname(target_id)
-            if target_id in duplicate_hostnames:
-                # Duplicate hostname has been found
-                # Append "-[<number of duplicates>]" hostname
-                # Example:
-                #   1st hostname of "juju-ubuntu-0" is unchanged
-                #   2nd hostname of "juju-ubuntu-0" is changed to "juju-ubuntu-0-[1]"
-                #   3rd hostname of "juju-ubuntu-0" is changed to "juju-ubuntu-0-[2]"
-                target_id += "-[{}]".format(duplicate_hostnames[target_id])
-                relation_settings[TARGET_ID_KEY] = target_id
 
             # Backwards compatible hostname from machine id
             if not model_id:
-                all_hosts[machine_id] = target_id
+                all_hosts[machine_id] = deduped_target_id
             # New hostname from machine id using model id
             else:
                 all_hosts.setdefault(model_id, {})
-                all_hosts[model_id][machine_id] = target_id
+                all_hosts[model_id][machine_id] = deduped_target_id
 
     if duplicate_hostnames:
         message = "Duplicate host names detected: {}".format(
-            ", ".join(duplicate_hostnames.keys())
+            ", ".join(sorted(duplicate_hostnames))
         )
         log(message, level=WARNING)
         status_set("active", message)
