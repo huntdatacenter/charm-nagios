@@ -44,6 +44,9 @@ from common import (
 
 import yaml
 
+HOST_PREFIX_MIN_LENGTH = 7
+HOST_PREFIX_MAX_LENGTH = 64  # max length of sha256sum in hex
+
 MACHINE_ID_KEY = "machine_id"
 MODEL_ID_KEY = "model_id"
 TARGET_ID_KEY = "target-id"
@@ -149,7 +152,7 @@ def main(argv):  # noqa: C901
             if model_id:
                 model_ids.add(model_id)
 
-    host_prefixes = _compute_host_prefixes(model_ids)
+    host_prefixes = compute_host_prefixes(model_ids)
 
     duplicate_hostnames = set()
     all_hosts = {}
@@ -161,8 +164,10 @@ def main(argv):  # noqa: C901
                 if model_id:
                     unique_prefix = host_prefixes[model_id]
                 else:
-                    unique_prefix = _compute_fallback_host_prefix(relation_settings)
-                relation_settings[TARGET_ID_KEY] = '{}_{}'.format(unique_prefix, target_id)
+                    unique_prefix = compute_fallback_host_prefix(relation_settings)
+                relation_settings[TARGET_ID_KEY] = "{}_{}".format(
+                    unique_prefix, target_id
+                )
 
             deduped_target_id = relation_settings[TARGET_ID_KEY]
             machine_id = relation_settings.get(MACHINE_ID_KEY)
@@ -195,32 +200,31 @@ def main(argv):  # noqa: C901
     os.system("service nagios3 reload")
 
 
-def _compute_host_prefixes(model_ids):
+def compute_host_prefixes(model_ids):
+    """Compute short unique identifiers based off of model UUIDs."""
     hashes = {}
     for model_id in model_ids:
         hashes[model_id] = hashlib.sha256(model_id.encode()).hexdigest()
 
     result = {}
-    for i in range(7, 65):
+    for i in range(HOST_PREFIX_MIN_LENGTH, HOST_PREFIX_MAX_LENGTH + 1):
         for model_id in model_ids:
             result[model_id] = hashes[model_id][:i]
-        log(repr([i, result]), level=WARNING)
         if len(set(result.values())) == len(model_ids):
             break
     return result
 
 
-def _compute_fallback_host_prefix(relation_settings):
-    # Rename target-id to distinguish hosts with duplicate hostnames.
-    # Create a unique but not too long prefix ID based upon the relation ID
-    # and remote unit.
-    # For example, given:
-    #   rid: monitors:1
-    #   unit: remote-0123456789abcdef0123456789abcdef/1
-    # The unique prefix would be: monitors:1_1_
-    relation_id = relation_settings['metadata']['rid']
-    unit_number = relation_settings['metadata']['unit'].split('/')[-1]
-    return '{}_{}'.format(relation_id, unit_number)
+def compute_fallback_host_prefix(relation_settings):
+    """Compute short unique identifiers, fallback method.
+
+    This method uses the relation ID (e.g. monitors:1), in conjunction with the remote
+    unit ID as seen via the relation (e.g. app/1 or
+    remote-0123456789abcdef0123456789abcdef/1), to create a unique identifier.
+    """
+    relation_id = relation_settings["metadata"]["rid"]
+    unit_number = relation_settings["metadata"]["unit"].split("/")[-1]
+    return "{}_{}".format(relation_id, unit_number)
 
 
 def apply_relation_config(relid, units, all_hosts):  # noqa: C901
