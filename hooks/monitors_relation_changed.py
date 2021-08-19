@@ -157,7 +157,7 @@ def main(argv):  # noqa: C901
     duplicate_hostnames = set()
     all_hosts = {}
     for target_id, relation_settings_list in hosts_to_settings.items():
-        for i, relation_settings in enumerate(relation_settings_list):
+        for relation_settings in relation_settings_list:
             model_id = relation_settings.get(MODEL_ID_KEY)
             if len(relation_settings_list) > 1:
                 duplicate_hostnames.add(target_id)
@@ -207,9 +207,13 @@ def compute_host_prefixes(model_ids):
         hashes[model_id] = hashlib.sha256(model_id.encode()).hexdigest()
 
     result = {}
+    # Try to find a short unique portion of the sha256sums to use.
+    # Loop through with longer and longer lengths until we find we have a set of
+    # unique IDs.
     for i in range(HOST_PREFIX_MIN_LENGTH, HOST_PREFIX_MAX_LENGTH + 1):
         for model_id in model_ids:
             result[model_id] = hashes[model_id][:i]
+        # If we have as many unique model IDs as hash fragments, break out of the loop.
         if len(set(result.values())) == len(model_ids):
             break
     return result
