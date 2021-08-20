@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
 import os
 import re
 import sys
@@ -42,6 +43,9 @@ from common import (
 )
 
 import yaml
+
+HOST_PREFIX_MIN_LENGTH = 7
+HOST_PREFIX_MAX_LENGTH = 64  # max length of sha256sum in hex
 
 MACHINE_ID_KEY = "machine_id"
 MODEL_ID_KEY = "model_id"
@@ -80,6 +84,11 @@ def _prepare_relation_data(unit, rid):
             log(msg, level=DEBUG)
 
             return {}
+
+    relation_data["metadata"] = {
+        "unit": unit,
+        "rid": rid,
+    }
 
     return relation_data
 
@@ -133,49 +142,50 @@ def main(argv):  # noqa: C901
 
     initialize_inprogress_config()
 
-    uniq_hostnames = set()
-    duplicate_hostnames = defaultdict(int)
-
-    def record_hostname(hostname):
-        if hostname not in uniq_hostnames:
-            uniq_hostnames.add(hostname)
-        else:
-            duplicate_hostnames[hostname] += 1
-
-    # make a dict of machine ids to target-id hostnames
-    all_hosts = {}
-    for relid, units in all_relations.items():
-        for unit, relation_settings in units.iteritems():
-            machine_id = relation_settings.get(MACHINE_ID_KEY)
-            model_id = relation_settings.get(MODEL_ID_KEY)
+    hosts_to_settings = defaultdict(list)
+    model_ids = set()
+    for units in all_relations.values():
+        for relation_settings in units.values():
             target_id = relation_settings.get(TARGET_ID_KEY)
+            hosts_to_settings[target_id].append(relation_settings)
+            model_id = relation_settings.get(MODEL_ID_KEY)
+            if model_id:
+                model_ids.add(model_id)
 
-            if not machine_id or not target_id:
+    host_prefixes = compute_host_prefixes(model_ids)
+
+    duplicate_hostnames = set()
+    all_hosts = {}
+    for target_id, relation_settings_list in hosts_to_settings.items():
+        for relation_settings in relation_settings_list:
+            model_id = relation_settings.get(MODEL_ID_KEY)
+            if len(relation_settings_list) > 1:
+                duplicate_hostnames.add(target_id)
+                if model_id:
+                    unique_prefix = host_prefixes[model_id]
+                else:
+                    unique_prefix = compute_fallback_host_prefix(relation_settings)
+                relation_settings[TARGET_ID_KEY] = "{}_{}".format(
+                    unique_prefix, target_id
+                )
+
+            deduped_target_id = relation_settings[TARGET_ID_KEY]
+            machine_id = relation_settings.get(MACHINE_ID_KEY)
+
+            if not machine_id or not deduped_target_id:
                 continue
-
-            # Check for duplicate hostnames and amend them if needed
-            record_hostname(target_id)
-            if target_id in duplicate_hostnames:
-                # Duplicate hostname has been found
-                # Append "-[<number of duplicates>]" hostname
-                # Example:
-                #   1st hostname of "juju-ubuntu-0" is unchanged
-                #   2nd hostname of "juju-ubuntu-0" is changed to "juju-ubuntu-0-[1]"
-                #   3rd hostname of "juju-ubuntu-0" is changed to "juju-ubuntu-0-[2]"
-                target_id += "-[{}]".format(duplicate_hostnames[target_id])
-                relation_settings[TARGET_ID_KEY] = target_id
 
             # Backwards compatible hostname from machine id
             if not model_id:
-                all_hosts[machine_id] = target_id
+                all_hosts[machine_id] = deduped_target_id
             # New hostname from machine id using model id
             else:
                 all_hosts.setdefault(model_id, {})
-                all_hosts[model_id][machine_id] = target_id
+                all_hosts[model_id][machine_id] = deduped_target_id
 
     if duplicate_hostnames:
         message = "Duplicate host names detected: {}".format(
-            ", ".join(duplicate_hostnames.keys())
+            ", ".join(sorted(duplicate_hostnames))
         )
         log(message, level=WARNING)
         status_set("active", message)
@@ -188,6 +198,37 @@ def main(argv):  # noqa: C901
     refresh_hostgroups()
     flush_inprogress_config()
     os.system("service nagios3 reload")
+
+
+def compute_host_prefixes(model_ids):
+    """Compute short unique identifiers based off of model UUIDs."""
+    hashes = {}
+    for model_id in model_ids:
+        hashes[model_id] = hashlib.sha256(model_id.encode()).hexdigest()
+
+    result = {}
+    # Try to find a short unique portion of the sha256sums to use.
+    # Loop through with longer and longer lengths until we find we have a set of
+    # unique IDs.
+    for i in range(HOST_PREFIX_MIN_LENGTH, HOST_PREFIX_MAX_LENGTH + 1):
+        for model_id in model_ids:
+            result[model_id] = hashes[model_id][:i]
+        # If we have as many unique model IDs as hash fragments, break out of the loop.
+        if len(set(result.values())) == len(model_ids):
+            break
+    return result
+
+
+def compute_fallback_host_prefix(relation_settings):
+    """Compute short unique identifiers, fallback method.
+
+    This method uses the relation ID (e.g. monitors:1), in conjunction with the remote
+    unit ID as seen via the relation (e.g. app/1 or
+    remote-0123456789abcdef0123456789abcdef/1), to create a unique identifier.
+    """
+    relation_id = relation_settings["metadata"]["rid"]
+    unit_number = relation_settings["metadata"]["unit"].split("/")[-1]
+    return "{}_{}".format(relation_id, unit_number)
 
 
 def apply_relation_config(relid, units, all_hosts):  # noqa: C901
