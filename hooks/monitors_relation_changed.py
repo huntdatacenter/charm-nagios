@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
 import os
 import re
 import sys
@@ -34,22 +33,25 @@ from charmhelpers.core.hookenv import (
 )
 
 from common import (
+    HOST_PREFIX_MAX_LENGTH,
+    HOST_PREFIX_MIN_LENGTH,
+    MODEL_ID_KEY,
+    TARGET_ID_KEY,
     customize_service,
     flush_inprogress_config,
+    get_model_id_sha,
+    get_nagios_host_config_path,
     get_pynag_host,
     get_pynag_service,
+    get_relid_unit_prefix,
     initialize_inprogress_config,
     refresh_hostgroups,
 )
 
+
 import yaml
 
-HOST_PREFIX_MIN_LENGTH = 7
-HOST_PREFIX_MAX_LENGTH = 64  # max length of sha256sum in hex
-
 MACHINE_ID_KEY = "machine_id"
-MODEL_ID_KEY = "model_id"
-TARGET_ID_KEY = "target-id"
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", TARGET_ID_KEY]
 
 
@@ -107,7 +109,7 @@ def _collect_relation_data():
     return all_relations
 
 
-def main(argv):  # noqa: C901
+def main(argv, full_rewrite=False):  # noqa: C901
     # Note that one can pass in args positionally, 'monitors.yaml targetid
     # and target-address' so the hook can be tested without being in a hook
     # context.
@@ -140,7 +142,7 @@ def main(argv):  # noqa: C901
 
     all_relations = new_all_relations
 
-    initialize_inprogress_config()
+    initialize_inprogress_config(full_rewrite=full_rewrite)
 
     hosts_to_settings = defaultdict(list)
     model_ids = set()
@@ -204,7 +206,7 @@ def compute_host_prefixes(model_ids):
     """Compute short unique identifiers based off of model UUIDs."""
     hashes = {}
     for model_id in model_ids:
-        hashes[model_id] = hashlib.sha256(model_id.encode()).hexdigest()
+        hashes[model_id] = get_model_id_sha(model_id)
 
     result = {}
     # Try to find a short unique portion of the sha256sums to use.
@@ -226,15 +228,20 @@ def compute_fallback_host_prefix(relation_settings):
     unit ID as seen via the relation (e.g. app/1 or
     remote-0123456789abcdef0123456789abcdef/1), to create a unique identifier.
     """
-    relation_id = relation_settings["metadata"]["rid"]
-    unit_number = relation_settings["metadata"]["unit"].split("/")[-1]
-    return "{}_{}".format(relation_id, unit_number)
+    return get_relid_unit_prefix(
+        relation_settings["metadata"]["rid"], relation_settings["metadata"]["unit"]
+    )
 
 
 def apply_relation_config(relid, units, all_hosts):  # noqa: C901
     for unit, relation_settings in units.iteritems():
-        monitors = relation_settings["monitors"]
         target_id = relation_settings[TARGET_ID_KEY]
+        if os.path.exists(get_nagios_host_config_path(target_id)):
+            # Skip updating files unrelated to the hook at hand unless they were
+            # deliberately removed with the intent of them being rewritten.
+            continue
+
+        monitors = relation_settings["monitors"]
         machine_id = relation_settings.get(MACHINE_ID_KEY)
         parent_host = None
 
