@@ -19,6 +19,7 @@
 import os
 import re
 import sys
+import time
 from collections import defaultdict
 
 from charmhelpers.core.hookenv import (
@@ -53,6 +54,8 @@ import yaml
 
 MACHINE_ID_KEY = "machine_id"
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", TARGET_ID_KEY]
+
+MINIMUM_HOOK_TIME_IN_SECONDS = 2
 
 
 def _prepare_relation_data(unit, rid):
@@ -114,6 +117,8 @@ def main(argv, full_rewrite=False):  # noqa: C901
     # and target-address' so the hook can be tested without being in a hook
     # context.
     #
+
+    start_time = time.time()
 
     if len(argv) > 1:
         relation_settings = {"monitors": open(argv[1]).read(), TARGET_ID_KEY: argv[2]}
@@ -199,6 +204,13 @@ def main(argv, full_rewrite=False):  # noqa: C901
 
     refresh_hostgroups()
     flush_inprogress_config()
+
+    # Reduce the chance of reload races, i.e. if there is a series of hooks and this
+    # hook completes before the last hook's nagios reload completes.
+    elapsed = time.time() - start_time
+    if elapsed < MINIMUM_HOOK_TIME_IN_SECONDS:
+        time.sleep(MINIMUM_HOOK_TIME_IN_SECONDS - elapsed)
+
     os.system("service nagios3 reload")
 
 
