@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import glob
 import os
 import re
 import sys
@@ -36,6 +37,7 @@ from charmhelpers.core.hookenv import (
 from common import (
     HOST_PREFIX_MAX_LENGTH,
     HOST_PREFIX_MIN_LENGTH,
+    HOST_TEMPLATE,
     MODEL_ID_KEY,
     TARGET_ID_KEY,
     customize_service,
@@ -202,6 +204,7 @@ def main(argv, full_rewrite=False):  # noqa: C901
     for relid, units in all_relations.items():
         apply_relation_config(relid, units, all_hosts)
 
+    cleanup_leftover_hosts(all_relations)
     refresh_hostgroups()
     flush_inprogress_config()
 
@@ -212,6 +215,34 @@ def main(argv, full_rewrite=False):  # noqa: C901
         time.sleep(MINIMUM_HOOK_TIME_IN_SECONDS - elapsed)
 
     os.system("service nagios3 reload")
+
+
+def cleanup_leftover_hosts(all_relations):
+    """Cleanup leftover host files.
+
+    While the charm deletes files potentially related to the immediate unit being added
+    or removed, the de-duplication code introduces the possibility that unrelated units
+    may end up with leftover files which are not cleaned up since no relevant
+    relation-changed hooks fired for that unit, yet the unit's hostname in nagios
+    changed as a side effect of a relation-changed hook fired on another unit.
+
+    To accomodate for this, we can compare the set of generated host files present
+    in the Nagios config against the set we presently intend to be present, and
+    remove the extras.
+    """
+
+    expected_paths = set()
+    for units in all_relations.itervalues():
+        for relation_settings in units.itervalues():
+            target_id = relation_settings[TARGET_ID_KEY]
+            expected_path = get_nagios_host_config_path(target_id)
+            expected_paths.add(expected_path)
+
+    actual_paths = set(glob.glob(HOST_TEMPLATE.format("*")))
+
+    leftover_files = actual_paths - expected_paths
+    for file in leftover_files:
+        os.unlink(file)
 
 
 def compute_host_prefixes(model_ids):
