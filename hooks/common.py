@@ -42,7 +42,7 @@ SANITIZE_ESCAPE_CHAR = "%"
 SANITIZE_CHARS = [
     SANITIZE_ESCAPE_CHAR,  # Must be first
     "/",
-    ".",
+    "*",
 ]
 
 Model.cfg_file = INPROGRESS_CFG
@@ -420,7 +420,7 @@ def sanitize_nagios_name(name):
     characters.  The original name should be retrievable, in case there's a need to
     reverse this in the future.
 
-    Assumption: escaped characters are within codepoints 0x00 to 0x7F (e.g. ASCII), and
+    Assumption: escaped characters are within codepoints 0x00 to 0x7F (i.e. ASCII), and
     can be represented as a 3 character sequence, including the escape character.
 
     """
@@ -465,15 +465,11 @@ def initialize_inprogress_config(full_rewrite=False):
     _replace_in_config(MAIN_NAGIOS_DIR, INPROGRESS_DIR)
 
     # Build list of files to replace/remove.
-    # 1. charm.cfg, the old monolithic all-in-one config file
     paths_to_remove = [OLD_CHARM_CFG]
-
     if full_rewrite:
         paths_to_remove.extend(_get_all_related_config_paths())
     else:
         paths_to_remove.extend(_get_minimal_related_config_paths())
-
-    log("PATHS TO REMOVE: {}".format(paths_to_remove))
     for path in paths_to_remove:
         if os.path.exists(path):
             os.unlink(path)
@@ -500,18 +496,18 @@ def _get_minimal_related_config_paths():
             checks.append((hgroup_name, HOSTGROUP_TEMPLATE))
 
         for target_name, template in checks:
-            # 2. Per-host and per-hostgroup config files related to the current hook's
+            # Per-host and per-hostgroup config files related to the current hook's
             # remote unit.  This is complicated due to automatic de-duplication of
             # duplicate host names from different models.
-            # 2.1. Direct match
+            # Case 1: Direct match
             paths_to_remove.append(template.format(target_name))
-            # 2.2. Deduped match, main algorithm, glob on first 7 chars of sha256sum
+            # Case 2: Deduped match, main algorithm, glob on first 7 chars of sha256sum
             if MODEL_ID_KEY in relation_data:
                 model_id = relation_data[MODEL_ID_KEY]
                 sha_prefix = get_model_id_sha(model_id)[:HOST_PREFIX_MIN_LENGTH]
                 glob_pattern = template.format("{}*_{}".format(sha_prefix, target_name))
                 paths_to_remove.extend(glob.glob(glob_pattern))
-            # 2.3. Deduped match, fallback algorithm
+            # Case 3: Deduped match, fallback algorithm
             relid_unit_prefix = get_relid_unit_prefix(relation_id(), remote_unit())
             paths_to_remove.append(
                 template.format("{}_{}".format(relid_unit_prefix, target_name))

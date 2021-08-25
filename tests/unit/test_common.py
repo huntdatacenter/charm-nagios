@@ -12,7 +12,7 @@ def test_check_ip():
     [
         ("my-host", "my-host"),
         ("with-slash/0", "with-slash%2f0"),
-        ("foo/../../bar", "foo%2f%2e%2e%2f%2e%2e%2fbar"),
+        ("foo*bar", "foo%2abar"),
         ("with-%", "with-%25"),
     ],
 )
