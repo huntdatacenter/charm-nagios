@@ -481,8 +481,10 @@ def _get_all_related_config_paths():
 def _get_minimal_related_config_paths():
     # Note: This also gets called via the config-changed hook, so there may not be any
     # implicit relation data; skip in this case.
+    target_id = None
     relation_data = relation_get()
-    target_id = relation_data.get(TARGET_ID_KEY)
+    if relation_data:
+        target_id = relation_data.get(TARGET_ID_KEY)
     if target_id is None:
         return []
 
