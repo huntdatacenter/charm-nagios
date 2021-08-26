@@ -34,6 +34,8 @@ from charmhelpers.core.hookenv import (
     status_set,
 )
 
+import yaml
+
 from common import (
     HOST_PREFIX_MAX_LENGTH,
     HOST_PREFIX_MIN_LENGTH,
@@ -51,8 +53,6 @@ from common import (
     refresh_hostgroups,
 )
 
-
-import yaml
 
 MACHINE_ID_KEY = "machine_id"
 REQUIRED_REL_DATA_KEYS = ["target-address", "monitors", TARGET_ID_KEY]
@@ -230,7 +230,6 @@ def cleanup_leftover_hosts(all_relations):
     in the Nagios config against the set we presently intend to be present, and
     remove the extras.
     """
-
     expected_paths = set()
     for units in all_relations.itervalues():
         for relation_settings in units.itervalues():

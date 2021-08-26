@@ -24,11 +24,11 @@ from charmhelpers import fetch
 from charmhelpers.contrib import ssl
 from charmhelpers.core import hookenv, host
 
-from common import update_localhost
-
 from jinja2 import Template
 
 import yaml
+
+from common import update_localhost
 
 # Gather facts
 legacy_relations = hookenv.config("legacy")

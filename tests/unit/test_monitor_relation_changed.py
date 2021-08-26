@@ -1,6 +1,6 @@
 import os
-import mock
 
+import mock
 
 import monitors_relation_changed
 
@@ -89,7 +89,9 @@ class TestCleanupLeftoverHosts:
         mock_host_template = "{}/juju-host_{{}}.cfg".format(tmpdir)
         with mock.patch(
             "monitors_relation_changed.HOST_TEMPLATE", mock_host_template
-        ) as _1, mock.patch("common.HOST_TEMPLATE", mock_host_template) as _2:
+        ) as _1, mock.patch(  # noqa: F841
+            "common.HOST_TEMPLATE", mock_host_template
+        ) as _2:  # noqa: F841
             existing_files = [
                 monitors_relation_changed.HOST_TEMPLATE.format("host-2"),
                 monitors_relation_changed.HOST_TEMPLATE.format("monitors:42_7_host-2"),
