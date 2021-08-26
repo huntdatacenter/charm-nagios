@@ -48,7 +48,6 @@ from common import (
     get_nagios_host_config_path,
     get_pynag_host,
     get_pynag_service,
-    get_relid_unit_prefix,
     initialize_inprogress_config,
     refresh_hostgroups,
 )
