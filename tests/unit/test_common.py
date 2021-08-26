@@ -35,9 +35,11 @@ class TestInitializeInprogressConfigFileCleanup:
         If there's no related unit (e.g. called via another hook like e.g.
         config-changed), only the old monolithic charm config file should be removed.
         """
-        with patch("common.OLD_CHARM_CFG", "{}/charm.cfg".format(tmpdir)) as _1, \
-             patch("common.HOST_TEMPLATE", "{}/juju-host_{{}}.cfg".format(tmpdir)) as _2, \
-             patch("common.HOSTGROUP_TEMPLATE", "{}/juju-hostgroup_{{}}.cfg".format(tmpdir)) as _3:
+        with patch("common.OLD_CHARM_CFG", "{}/charm.cfg".format(tmpdir)) as _1, patch(
+            "common.HOST_TEMPLATE", "{}/juju-host_{{}}.cfg".format(tmpdir)
+        ) as _2, patch(
+            "common.HOSTGROUP_TEMPLATE", "{}/juju-hostgroup_{{}}.cfg".format(tmpdir)
+        ) as _3:
             existing_files = [
                 common.OLD_CHARM_CFG,
                 common.HOST_TEMPLATE.format("host-1"),
@@ -67,9 +69,11 @@ class TestInitializeInprogressConfigFileCleanup:
         * Likely related hostgroup files
         """
         """Test that related unit files get removed as expected."""
-        with patch("common.OLD_CHARM_CFG", "{}/charm.cfg".format(tmpdir)) as _1, \
-             patch("common.HOST_TEMPLATE", "{}/juju-host_{{}}.cfg".format(tmpdir)) as _2, \
-             patch("common.HOSTGROUP_TEMPLATE", "{}/juju-hostgroup_{{}}.cfg".format(tmpdir)) as _3:
+        with patch("common.OLD_CHARM_CFG", "{}/charm.cfg".format(tmpdir)) as _1, patch(
+            "common.HOST_TEMPLATE", "{}/juju-host_{{}}.cfg".format(tmpdir)
+        ) as _2, patch(
+            "common.HOSTGROUP_TEMPLATE", "{}/juju-hostgroup_{{}}.cfg".format(tmpdir)
+        ) as _3:
             related_unit_hostname = "host-2"
             existing_files = [
                 common.OLD_CHARM_CFG,
@@ -117,5 +121,5 @@ class TestInitializeInprogressConfigFileCleanup:
 
     def create_files(self, filenames):
         for filename in filenames:
-            with open(filename, 'w') as _:
+            with open(filename, "w") as _:
                 pass
