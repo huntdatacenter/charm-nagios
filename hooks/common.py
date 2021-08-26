@@ -459,8 +459,10 @@ def initialize_inprogress_config(full_rewrite=False):
         shutil.rmtree(INPROGRESS_DIR)
     shutil.copytree(MAIN_NAGIOS_DIR, INPROGRESS_DIR)
     _replace_in_config(MAIN_NAGIOS_DIR, INPROGRESS_DIR)
+    _initialize_inprogress_config_files(full_rewrite)
 
-    # Build list of files to replace/remove.
+
+def _initialize_inprogress_config_files(full_rewrite=False):
     paths_to_remove = [OLD_CHARM_CFG]
     if full_rewrite:
         paths_to_remove.extend(_get_all_related_config_paths())
