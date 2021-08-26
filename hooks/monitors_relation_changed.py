@@ -160,9 +160,16 @@ def main(argv, full_rewrite=False):  # noqa: C901
     duplicate_hostnames = set()
     all_hosts = {}
     for target_id, relation_settings_list in hosts_to_settings.items():
+        related_model_ids = set(
+            [
+                relation_settings.get(MODEL_ID_KEY)
+                for relation_settings in relation_settings_list
+            ]
+        )
+        deduping_required = len(related_model_ids) > 1
         for relation_settings in relation_settings_list:
             model_id = relation_settings.get(MODEL_ID_KEY)
-            if model_id and len(relation_settings_list) > 1:
+            if model_id and deduping_required:
                 duplicate_hostnames.add(target_id)
                 unique_prefix = host_prefixes[model_id]
                 relation_settings[TARGET_ID_KEY] = "{}_{}".format(
