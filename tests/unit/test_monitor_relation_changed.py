@@ -72,18 +72,6 @@ class TestComputeHostPrefixes:
         assert prefixes == expected_result
 
 
-def test_compute_fallback_host_prefix():
-    prefix = monitors_relation_changed.compute_fallback_host_prefix(
-        {
-            "metadata": {
-                "rid": "monitors:1",
-                "unit": "remote-0123456789abcdef0123456789abcdef/1",
-            }
-        }
-    )
-    assert prefix == "monitors:1_1"
-
-
 class TestCleanupLeftoverHosts:
     def test_cleanup_leftover_hosts(self, tmpdir):
         mock_host_template = "{}/juju-host_{{}}.cfg".format(tmpdir)
@@ -94,11 +82,9 @@ class TestCleanupLeftoverHosts:
         ) as _2:  # noqa: F841
             existing_files = [
                 monitors_relation_changed.HOST_TEMPLATE.format("host-2"),
-                monitors_relation_changed.HOST_TEMPLATE.format("monitors:42_7_host-2"),
                 monitors_relation_changed.HOST_TEMPLATE.format("fakesha_host-2"),
             ]
             expected_files_to_delete = [
-                monitors_relation_changed.HOST_TEMPLATE.format("monitors:42_7_host-2"),
                 monitors_relation_changed.HOST_TEMPLATE.format("fakesha_host-2"),
             ]
 

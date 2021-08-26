@@ -57,11 +57,9 @@ class TestInitializeInprogressConfigFileCleanup:
             rget_mock.return_value = None
             self._run_test(existing_files, expected_files_to_delete)
 
-    @patch("common.remote_unit")
-    @patch("common.relation_id")
     @patch("common.get_model_id_sha")
     @patch("common.relation_get")
-    def test_with_related_unit(self, rget_mock, sha_mock, rid_mock, runit_mock, tmpdir):
+    def test_with_related_unit(self, rget_mock, sha_mock, tmpdir):
         """Related unit case.
 
         If there is a related unit, we should remove:
@@ -82,36 +80,26 @@ class TestInitializeInprogressConfigFileCleanup:
                 common.OLD_CHARM_CFG,
                 common.HOST_TEMPLATE.format("host-1"),
                 common.HOST_TEMPLATE.format("host-2"),
-                common.HOST_TEMPLATE.format("monitors:42_7_host-2"),
                 common.HOST_TEMPLATE.format("fakesha_host-2"),
                 common.HOST_TEMPLATE.format("host-3"),
-                common.HOST_TEMPLATE.format("monitors:42_8_host-3"),
                 common.HOST_TEMPLATE.format("fakesha_host-3"),
                 common.HOSTGROUP_TEMPLATE.format("host"),
-                common.HOSTGROUP_TEMPLATE.format("monitors:42_7_host"),
-                common.HOSTGROUP_TEMPLATE.format("monitors:42_8_host"),
                 common.HOSTGROUP_TEMPLATE.format("fakesha_host"),
             ]
             expected_files_to_delete = [
                 common.OLD_CHARM_CFG,
                 common.HOST_TEMPLATE.format("host-2"),
-                common.HOST_TEMPLATE.format("monitors:42_7_host-2"),
                 common.HOST_TEMPLATE.format("fakesha_host-2"),
                 common.HOSTGROUP_TEMPLATE.format("host"),
-                common.HOSTGROUP_TEMPLATE.format("monitors:42_7_host"),
                 common.HOSTGROUP_TEMPLATE.format("fakesha_host"),
             ]
             fake_sha = "fakesha"
-            fake_relation_id = "monitors:42"
-            fake_remote_unit = "foo/7"
 
             rget_mock.return_value = {
                 common.TARGET_ID_KEY: related_unit_hostname,
                 common.MODEL_ID_KEY: "fake",
             }
             sha_mock.return_value = fake_sha
-            rid_mock.return_value = fake_relation_id
-            runit_mock.return_value = fake_remote_unit
             self._run_test(existing_files, expected_files_to_delete)
 
     def _run_test(self, existing_files, expected_files_to_delete):
