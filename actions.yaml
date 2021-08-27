@@ -1,0 +1,2 @@
+rewrite-peer-config:
+    description: Rewrites the host, service, and hostgroup configuration for the NRPE peers.

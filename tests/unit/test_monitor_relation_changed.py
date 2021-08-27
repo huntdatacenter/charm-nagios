@@ -1,5 +1,6 @@
-from unittest import mock
+import os
 
+import mock
 
 import monitors_relation_changed
 
@@ -81,3 +82,40 @@ def test_compute_fallback_host_prefix():
         }
     )
     assert prefix == "monitors:1_1"
+
+
+class TestCleanupLeftoverHosts:
+    def test_cleanup_leftover_hosts(self, tmpdir):
+        mock_host_template = "{}/juju-host_{{}}.cfg".format(tmpdir)
+        with mock.patch(
+            "monitors_relation_changed.HOST_TEMPLATE", mock_host_template
+        ) as _1, mock.patch(  # noqa: F841
+            "common.HOST_TEMPLATE", mock_host_template
+        ) as _2:  # noqa: F841
+            existing_files = [
+                monitors_relation_changed.HOST_TEMPLATE.format("host-2"),
+                monitors_relation_changed.HOST_TEMPLATE.format("monitors:42_7_host-2"),
+                monitors_relation_changed.HOST_TEMPLATE.format("fakesha_host-2"),
+            ]
+            expected_files_to_delete = [
+                monitors_relation_changed.HOST_TEMPLATE.format("monitors:42_7_host-2"),
+                monitors_relation_changed.HOST_TEMPLATE.format("fakesha_host-2"),
+            ]
+
+            self.create_files(existing_files)
+            all_relations = {
+                "fake_relation_id": {
+                    "fake_unit_id": {monitors_relation_changed.TARGET_ID_KEY: "host-2"}
+                }
+            }
+            monitors_relation_changed.cleanup_leftover_hosts(all_relations)
+            assert not any(os.path.exists(file) for file in expected_files_to_delete)
+            expected_leftover_files = set(existing_files) - set(
+                expected_files_to_delete
+            )
+            assert all(os.path.exists(file) for file in expected_leftover_files)
+
+    def create_files(self, filenames):
+        for filename in filenames:
+            with open(filename, "w") as _:
+                pass
