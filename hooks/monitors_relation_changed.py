@@ -199,8 +199,9 @@ def main(argv, full_rewrite=False):  # noqa: C901
     else:
         status_set("active", "ready")
 
-    for relid, units in all_relations.items():
-        apply_relation_config(relid, units, all_hosts)
+    new_file_set = set()
+    for units in all_relations.itervalues():
+        apply_relation_config(units, all_hosts, new_file_set)
 
     cleanup_leftover_hosts(all_relations)
     refresh_hostgroups()
@@ -261,13 +262,15 @@ def compute_host_prefixes(model_ids):
     return result
 
 
-def apply_relation_config(relid, units, all_hosts):  # noqa: C901
-    for unit, relation_settings in units.iteritems():
+def apply_relation_config(units, all_hosts, new_file_set):  # noqa: C901
+    for relation_settings in units.itervalues():
         target_id = relation_settings[TARGET_ID_KEY]
-        if os.path.exists(get_nagios_host_config_path(target_id)):
+        host_config_path = get_nagios_host_config_path(target_id)
+        if os.path.exists(host_config_path) and host_config_path not in new_file_set:
             # Skip updating files unrelated to the hook at hand unless they were
             # deliberately removed with the intent of them being rewritten.
             continue
+        new_file_set.add(host_config_path)
 
         monitors = relation_settings["monitors"]
         machine_id = relation_settings.get(MACHINE_ID_KEY)
