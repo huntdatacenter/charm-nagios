@@ -48,7 +48,6 @@ from common import (
     get_nagios_host_config_path,
     get_pynag_host,
     get_pynag_service,
-    get_relid_unit_prefix,
     initialize_inprogress_config,
     refresh_hostgroups,
 )
@@ -91,11 +90,6 @@ def _prepare_relation_data(unit, rid):
             log(msg, level=DEBUG)
 
             return {}
-
-    relation_data["metadata"] = {
-        "unit": unit,
-        "rid": rid,
-    }
 
     return relation_data
 
@@ -166,14 +160,18 @@ def main(argv, full_rewrite=False):  # noqa: C901
     duplicate_hostnames = set()
     all_hosts = {}
     for target_id, relation_settings_list in hosts_to_settings.items():
+        related_model_ids = set(
+            [
+                relation_settings.get(MODEL_ID_KEY)
+                for relation_settings in relation_settings_list
+            ]
+        )
+        deduping_required = len(related_model_ids) > 1
         for relation_settings in relation_settings_list:
             model_id = relation_settings.get(MODEL_ID_KEY)
-            if len(relation_settings_list) > 1:
+            if model_id and deduping_required:
                 duplicate_hostnames.add(target_id)
-                if model_id:
-                    unique_prefix = host_prefixes[model_id]
-                else:
-                    unique_prefix = compute_fallback_host_prefix(relation_settings)
+                unique_prefix = host_prefixes[model_id]
                 relation_settings[TARGET_ID_KEY] = "{}_{}".format(
                     unique_prefix, target_id
                 )
@@ -261,18 +259,6 @@ def compute_host_prefixes(model_ids):
         if len(set(result.values())) == len(model_ids):
             break
     return result
-
-
-def compute_fallback_host_prefix(relation_settings):
-    """Compute short unique identifiers, fallback method.
-
-    This method uses the relation ID (e.g. monitors:1), in conjunction with the remote
-    unit ID as seen via the relation (e.g. app/1 or
-    remote-0123456789abcdef0123456789abcdef/1), to create a unique identifier.
-    """
-    return get_relid_unit_prefix(
-        relation_settings["metadata"]["rid"], relation_settings["metadata"]["unit"]
-    )
 
 
 def apply_relation_config(relid, units, all_hosts):  # noqa: C901

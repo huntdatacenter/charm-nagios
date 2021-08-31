@@ -14,8 +14,6 @@ from charmhelpers.core.hookenv import (
     network_get,
     network_get_primary_address,
     relation_get,
-    relation_id,
-    remote_unit,
     unit_get,
 )
 
@@ -502,17 +500,12 @@ def _get_minimal_related_config_paths():
         # duplicate host names from different models.
         # Case 1: Direct match
         paths_to_remove.append(template.format(target_name))
-        # Case 2: Deduped match, main algorithm, glob on first 7 chars of sha256sum
+        # Case 2: Deduped match, glob on first 7 chars of sha256sum
         if MODEL_ID_KEY in relation_data:
             model_id = relation_data[MODEL_ID_KEY]
             sha_prefix = get_model_id_sha(model_id)[:HOST_PREFIX_MIN_LENGTH]
             glob_pattern = template.format("{}*_{}".format(sha_prefix, target_name))
             paths_to_remove.extend(glob.glob(glob_pattern))
-        # Case 3: Deduped match, fallback algorithm
-        relid_unit_prefix = get_relid_unit_prefix(relation_id(), remote_unit())
-        paths_to_remove.append(
-            template.format("{}_{}".format(relid_unit_prefix, target_name))
-        )
     return paths_to_remove
 
 
