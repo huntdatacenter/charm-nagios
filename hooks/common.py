@@ -7,6 +7,7 @@ import shutil
 import socket
 import subprocess
 import tempfile
+import time
 
 from charmhelpers.core.hookenv import (
     config,
@@ -16,6 +17,7 @@ from charmhelpers.core.hookenv import (
     relation_get,
     unit_get,
 )
+from charmhelpers.core.host import service_reload
 
 from pynag import Model
 
@@ -543,3 +545,67 @@ def flush_inprogress_config():
     # now that directory has been changed need to update the config file to
     # reflect the real stuff..
     _commit_in_config(INPROGRESS_DIR, MAIN_NAGIOS_DIR)
+
+
+def reload_nagios(max_attempts=30):
+    """Trigger a reload of nagios's configuration.
+
+    Nagios config reload is triggered by sending it a SIGHUP. Unfortunately, reloading
+    via systemd or similar doesn't actually wait for the reload to complete; it merely
+    sends the SIGHUP.
+
+    Under normal circumstances this is likely "good enough", however if many reloads
+    are triggered in quick sequence, some of the SIGHUP signals will not be caught.
+    This can result in Nagios not being aware of local file changes in some cases, such
+    as back-to-back hooks which modify Nagios config (e.g. monitors-relation-changed).
+
+    This function attempts to both trigger a nagios reload event and confirm that it
+    was, indeed, recognized by nagios.
+
+    """
+    # Current procedure:
+    # 1. Check for last reload message in the nagios log file
+    # 2. Trigger the reload
+    # 3. Check for an updated reload message in the nagios log file. Loop a few times if
+    #    necessary.
+    # 4. If a reload message is not yet seen; try repeating steps 2 and 3 a few more
+    #    times before giving up.
+
+    last_reload_message = _get_last_reload_message()
+    for i in range(max_attempts):
+        log("Reloading nagios, attempt {}".format(i + 1), level="info")
+        service_reload("nagios3")
+        log("Reload signal sent to nagios", level="debug")
+        reload_detected = False
+        for i in range(10):
+            new_reload_message = _get_last_reload_message()
+            reload_detected = (
+                new_reload_message and new_reload_message != last_reload_message
+            )
+            if reload_detected:
+                log(
+                    "Detected new SIGHUP message in nagios log file",
+                    level="debug",
+                )
+                log("Nagios reload confirmed", level="info")
+                break
+            time.sleep(0.1)
+        if reload_detected:
+            break
+        log("Nagios reload not detected; retrying", level="debug")
+    else:
+        log(
+            "Nagios reload signalled, but unable to verify reload",
+            level="warning",
+        )
+
+
+def _get_last_reload_message():
+    cmdline = [
+        "/bin/bash",
+        "-c",
+        'tail -n1000 /var/log/nagios3/nagios.log | grep -e "Caught SIGHUP, restarting"',
+    ]
+    stdout, _ = subprocess.Popen(cmdline, stdout=subprocess.PIPE).communicate()
+    stdout_lines = stdout.splitlines()
+    return stdout_lines[-1].strip() if stdout_lines else None
