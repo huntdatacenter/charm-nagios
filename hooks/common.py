@@ -577,7 +577,7 @@ def reload_nagios(max_attempts=30):
         service_reload("nagios3")
         log("Reload signal sent to nagios", level="debug")
         reload_detected = False
-        for i in range(10):
+        for _ in range(10):
             new_reload_message = _get_last_reload_message()
             reload_detected = (
                 new_reload_message and new_reload_message != last_reload_message
@@ -601,11 +601,10 @@ def reload_nagios(max_attempts=30):
 
 
 def _get_last_reload_message():
-    cmdline = [
-        "/bin/bash",
-        "-c",
+    stdout, _ = subprocess.Popen(
         'tail -n1000 /var/log/nagios3/nagios.log | grep -e "Caught SIGHUP, restarting"',
-    ]
-    stdout, _ = subprocess.Popen(cmdline, stdout=subprocess.PIPE).communicate()
+        shell=True,
+        stdout=subprocess.PIPE,
+    ).communicate()
     stdout_lines = stdout.splitlines()
     return stdout_lines[-1].strip() if stdout_lines else None
