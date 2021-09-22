@@ -28,7 +28,10 @@ from jinja2 import Template
 
 import yaml
 
-from common import update_localhost
+from common import (
+    reload_nagios,
+    update_localhost,
+)
 
 # Gather facts
 legacy_relations = hookenv.config("legacy")
@@ -191,7 +194,7 @@ def enable_livestatus_config():
 
     if not os.path.exists(livestatus_path):
         # This needs a nagios restart to actually make the socket
-        host.service_reload("nagios3")
+        reload_nagios()
     # Fix the perms on the socket
     hookenv.log("Fixing perms on the socket")
     uid = pwd.getpwnam(nagios_user).pw_uid
@@ -375,7 +378,7 @@ def update_contacts():
     with open("/etc/nagios3/conf.d/contacts_nagios2.cfg", "w") as f:
         f.write(t.render(template_values))
 
-    host.service_reload("nagios3")
+    reload_nagios()
 
 
 def ssl_configured():
@@ -502,7 +505,7 @@ def update_config():
     with open("/etc/nagios3/conf.d/localhost_nagios2.cfg", "w") as f:
         f.write(t.render(template_values))
 
-    host.service_reload("nagios3")
+    reload_nagios()
 
 
 def update_cgi_config():
@@ -514,7 +517,7 @@ def update_cgi_config():
     with open(nagios_cgi_cfg, "w") as f:
         f.write(t.render(template_values))
 
-    host.service_reload("nagios3")
+    reload_nagios()
     host.service_reload("apache2")
 
 
