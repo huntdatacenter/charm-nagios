@@ -355,3 +355,7 @@ options:
             - name: snmp_collector
               host: /path/to/snmp/helper ....
               service: /path/to/snmp/helper ....
+    site_name:
+        type: string
+        default: ''
+        description: An unique site name for Nagios deployment
