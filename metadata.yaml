@@ -16,5 +16,7 @@ requires:
     interface: juju-info
   monitors:
     interface: monitors
+  application-dashboard:
+    interface: register-application
 extra-bindings:
   public:

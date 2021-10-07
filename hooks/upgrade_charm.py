@@ -20,6 +20,8 @@ except ImportError:
         "DEBIAN_FRONTEND=noninteractive apt-get -qy install python-enum34", shell=True
     )
 
+from application_dashboard_relation import application_dashboard_relation_changed
+
 from charmhelpers import fetch
 from charmhelpers.contrib import ssl
 from charmhelpers.core import hookenv, host
@@ -678,6 +680,7 @@ update_cgi_config()
 update_contacts()
 update_password("nagiosro", ro_password)
 configure_livestatus_xinetd()
+application_dashboard_relation_changed()
 
 if password:
     update_password(nagiosadmin, password)
