@@ -49,7 +49,7 @@ def application_dashboard_relation_changed(relation_id=None, remote_unit=None):
     else:
         subtitle = "Monitoring and alerting"
         group = "LMA"
-    icon_file = os.environ.get("JUJU_CHARM_DIR", None) + "/icon.svg"
+    icon_file = os.environ.get("JUJU_CHARM_DIR", "") + "/icon.svg"
     icon_data = None
     if os.path.exists(icon_file):
         with open(icon_file) as f:
