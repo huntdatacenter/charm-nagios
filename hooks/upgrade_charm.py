@@ -310,6 +310,33 @@ def enable_traps_config():
         f.write(t.render(template_values))
 
 
+def update_commands():
+    max_notifications = hookenv.config("email_max_notifications")
+    if not isinstance(max_notifications, int) or max_notifications < 0:
+        # Invalid value; coerce to default of 0 (max notifications disabled)
+        max_notifications = 0
+
+    host_mail_limiter = ""
+    service_mail_limiter = ""
+    if max_notifications:
+        host_mail_limiter = "test $HOSTNOTIFICATIONNUMBER$ -le {} && ".format(max_notifications)
+        service_mail_limiter = "test $SERVICENOTIFICATIONNUMBER$ -le {} && ".format(max_notifications)
+
+    template_values = {
+        "host_mail_limiter": host_mail_limiter,
+        "service_mail_limiter": service_mail_limiter,
+    }
+
+    with open("hooks/templates/commands-cfg.tmpl", "r") as f:
+        template_def = f.read()
+
+    t = Template(template_def)
+    with open("/etc/nagios3/commands.cfg", "w") as f:
+        f.write(t.render(template_values))
+
+    reload_nagios()
+
+
 def update_contacts():
     # Multiple Email Contacts
     admin_members = ""
@@ -673,6 +700,7 @@ enable_traps_config()
 if ssl_configured():
     enable_ssl()
 enable_pagerduty_config()
+update_commands()
 update_contacts()
 update_config()
 update_apache()

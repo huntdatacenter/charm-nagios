@@ -151,6 +151,23 @@ options:
         default: "/var/lib/nagios3/pagerduty"
         description: |
             Path for Pagerduty notifications to be queued.
+    email_max_notifications:
+        type: int
+        default: 0
+        description: |
+            Specify how many times to send mails for a given alert.
+            
+            By default, the notify-host-by-email and notify-service-by-email commands will send
+            email for every notification.  If re-notification is enabled, this may not be
+            desireable.  (For example, if re-notification is used in conjunction with PagerDuty,
+            it may be desireable to re-notify PagerDuty but not re-send emails.)
+            
+            If this is set to a positive integer, these commands will be modified so emails are
+            only sent up to the specified number of times per alert, after which no more emails
+            will be sent.  For example, setting this to 1 will make the email commands send
+            email on the first occurance of any alert, but not on any re-notifications.
+            
+            If set to 0, the default behavior is maintained.
     log_rotation_method:
         type: string
         default: "d"
