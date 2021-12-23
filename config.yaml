@@ -334,6 +334,14 @@ options:
             f = notify when the host starts and stops flapping,
             s = send notifications when host or service scheduled downtime starts and ends.
             If you specify n (none) as an option, the contact will not receive any type of host notifications.
+    notification_interval:
+        type: int
+        default: 0
+        description: |
+            Interval at which to send notifications for an alert.  This will be in minutes as long
+            as the global-level config option interval_length remains at the default of 60 seconds.
+            
+            The default, 0, means to never re-alert.
     extra_contacts:
         default: ''
         type: string

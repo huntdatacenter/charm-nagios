@@ -364,6 +364,23 @@ def update_localhost():
         host.save()
 
 
+def update_notification_interval():
+    """Update the localhost definition to use the ubuntu icons."""
+    notification_interval = config('notification_interval')
+    if notification_interval < 0:
+        notification_interval = 0
+    Model.cfg_file = MAIN_NAGIOS_CFG
+    Model.pynag_directory = os.path.join(MAIN_NAGIOS_DIR, "conf.d")
+    hosts = Model.Host.objects.filter(name="generic-host")
+    for host in hosts:
+        host.notification_interval = notification_interval
+        host.save()
+    services = Model.Service.objects.filter(name="generic-service")
+    for service in services:
+        service.notification_interval = notification_interval
+        service.save()
+
+
 def get_pynag_host(target_id, owner_unit=None, owner_relation=None):
     try:
         host = Model.Host.objects.get_by_shortname(target_id)

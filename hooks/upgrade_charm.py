@@ -33,6 +33,7 @@ import yaml
 from common import (
     reload_nagios,
     update_localhost,
+    update_notification_interval,
 )
 
 # Gather facts
@@ -676,6 +677,7 @@ update_contacts()
 update_config()
 update_apache()
 update_localhost()
+update_notification_interval()
 update_cgi_config()
 update_contacts()
 update_password("nagiosro", ro_password)
