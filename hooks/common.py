@@ -366,7 +366,7 @@ def update_localhost():
 
 def update_notification_interval():
     """Update the localhost definition to use the ubuntu icons."""
-    notification_interval = config('notification_interval')
+    notification_interval = config("notification_interval")
     if notification_interval < 0:
         notification_interval = 0
     Model.cfg_file = MAIN_NAGIOS_CFG
