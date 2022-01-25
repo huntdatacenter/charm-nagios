@@ -319,8 +319,12 @@ def update_commands():
     host_mail_limiter = ""
     service_mail_limiter = ""
     if max_notifications:
-        host_mail_limiter = "test $HOSTNOTIFICATIONNUMBER$ -le {} && ".format(max_notifications)
-        service_mail_limiter = "test $SERVICENOTIFICATIONNUMBER$ -le {} && ".format(max_notifications)
+        host_mail_limiter = "test $HOSTNOTIFICATIONNUMBER$ -le {} && ".format(
+            max_notifications
+        )
+        service_mail_limiter = "test $SERVICENOTIFICATIONNUMBER$ -le {} && ".format(
+            max_notifications
+        )
 
     template_values = {
         "host_mail_limiter": host_mail_limiter,
