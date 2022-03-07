@@ -188,7 +188,7 @@ async def create_group(run_command):
 
 pytestmark = pytest.mark.asyncio
 
-CHARM_BUILD_DIR = os.getenv("CHARM_BUILD_DIR", "..").rstrip("/")
+PROJECTPATH = os.getenv("PROJECTPATH").rstrip("/")
 
 SERIES = ["xenial", "bionic"]
 
@@ -242,7 +242,7 @@ async def deploy_app(relatives, model, series):
 
     """Deploy the nagios app."""
     nagios_app = await model.deploy(
-        os.path.join(CHARM_BUILD_DIR, "nagios"),
+        os.path.join(PROJECTPATH, "nagios.charm"),
         application_name=app_name,
         series=series,
         config={
