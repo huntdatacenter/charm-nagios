@@ -14,7 +14,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 .tox
-report/
+reports/
 htmlcov/
 
 # Log files
@@ -38,4 +38,5 @@ dist/
 *.snap
 
 # Builds
-.build/
+build/
+*.charm
