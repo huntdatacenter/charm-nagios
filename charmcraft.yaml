@@ -9,6 +9,7 @@ parts:
       - files/*
       - hooks/*
       - templates/*
+      - scripts/*
       - actions.yaml
       - config.yaml
       - copyright
