@@ -38,7 +38,7 @@ Will get you the public IP of the web interface.
 
 - `enable_pagerduty` - Config variable to enable pagerduty notifications or not.
 
-- `pagerduty_key` - Pagerduty API key to use for notifications
+- `pagerduty_key` - Pagerduty Integration key to use for notifications (configured within a PD service, as "Nagios integration")
 
 - `pagerduty_path` - Path for Pagerduty notifications to be queued, default is /var/lib/nagios3/pagerduty.
 
@@ -120,6 +120,15 @@ The monitors interface expects three fields:
 - `monitors` - YAML matching the monitors yaml spec. See example.monitors.yaml for more information.
 - `target-id` - Assign any monitors to this target host definition.
 - `target-address` - Optional, specifies the host of the target to monitor. This must be specified by at least one unit so that the intended target-id will be monitorable.
+
+### Test alert notifications
+
+Checks in the web interface allow sending custom service notifications. However,
+these type of alerts are logged as `CUSTOM (CRITICAL)` and don't send notifications
+via third party plugins (e.g. Pagerduty).
+
+In order to test if notification plugins work as expected, it is recommended to
+force an alert (e.g. stop a service).
 
 
 # Contact Information
