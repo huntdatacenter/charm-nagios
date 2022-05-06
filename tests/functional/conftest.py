@@ -35,6 +35,7 @@ async def controller():
     await controller.disconnect()
 
 
+# Comment for re-using the current model
 @pytest.fixture(scope="session")
 async def model(controller):
     """Create a model that lives only for the duration of the test."""
@@ -49,6 +50,15 @@ async def model(controller):
 
     while model_name in await controller.list_models():
         await asyncio.sleep(1)
+
+
+# Uncomment for re-using the current model, useful for debugging functional tests
+# @pytest.fixture(scope='session')
+# async def model():
+#     model = Model()
+#     await model.connect_current()
+#     yield model
+#     await model.disconnect()
 
 
 @pytest.fixture(scope="session")
@@ -153,7 +163,7 @@ async def file_contents(run_command):
         cmd = "cat {}".format(path)
         results = await run_command(cmd, target)
 
-        return results["Stdout"]
+        return results.get("Stdout")
 
     return _file_contents
 
@@ -296,6 +306,10 @@ class Agent:
         except asyncio.TimeoutError:
             if not ignore_timeout:
                 raise
+
+    @property
+    async def public_address(self):
+        return await self.u.get_public_address()
 
 
 @pytest.fixture()

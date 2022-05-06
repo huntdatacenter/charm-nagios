@@ -116,7 +116,7 @@ async def set_multiple_admins(unit):
 # TESTS #
 #########
 async def test_web_interface_with_ssl(auth, unit, ssl):
-    http_url = "http://%s/nagios3/" % unit.u.public_address
+    http_url = "http://%s/nagios3/" % await unit.public_address
     if ssl == "only":
         with pytest.raises(requests.ConnectionError):
             requests.get(http_url, auth=auth)
@@ -124,7 +124,7 @@ async def test_web_interface_with_ssl(auth, unit, ssl):
         r = requests.get(http_url, auth=auth)
         assert r.status_code == 200, "HTTP Admin login failed"
 
-    https_url = "https://%s/nagios3/" % unit.u.public_address
+    https_url = "https://%s/nagios3/" % await unit.public_address
     r = requests.get(https_url, auth=auth, verify=False)
     assert r.status_code == 200, "HTTPs Admin login failed"
 
@@ -133,7 +133,7 @@ async def test_web_interface_with_ssl(auth, unit, ssl):
 async def test_extra_config(auth, unit):
     host_url = (
         "http://%s/cgi-bin/nagios3/status.cgi?"
-        "hostgroup=all&style=hostdetail" % unit.u.public_address
+        "hostgroup=all&style=hostdetail" % await unit.public_address
     )
     r = requests.get(host_url, auth=auth)
     assert "extra_config" in r.text, "Nagios is not monitoring extra_config"
@@ -171,7 +171,7 @@ async def test_snmp_traps(unit, enable_snmp_traps, file_stat, file_contents):
 
 async def test_extra_contacts(auth, unit, set_extra_contacts):
     contancts_url = (
-        "http://%s/cgi-bin/nagios3/config.cgi?type=contacts" % unit.u.public_address
+        "http://%s/cgi-bin/nagios3/config.cgi?type=contacts" % await unit.public_address
     )
     contact_name = set_extra_contacts
     r = requests.get(contancts_url, auth=auth)
@@ -182,7 +182,7 @@ async def test_extra_contacts(auth, unit, set_extra_contacts):
     ), "Contact name alias is not the capitalized name."
     contactgroups_url = (
         "http://%s/cgi-bin/nagios3/config.cgi"
-        "?type=contactgroups" % unit.u.public_address
+        "?type=contactgroups" % await unit.public_address
     )
 
     r = requests.get(contactgroups_url, auth=auth)
@@ -192,7 +192,7 @@ async def test_extra_contacts(auth, unit, set_extra_contacts):
 
 async def test_multiple_admin_contacts(auth, unit, set_multiple_admins):
     contancts_url = (
-        "http://%s/cgi-bin/nagios3/config.cgi?type=contacts" % unit.u.public_address
+        "http://%s/cgi-bin/nagios3/config.cgi?type=contacts" % await unit.public_address
     )
     admins = set_multiple_admins
     r = requests.get(contancts_url, auth=auth)
