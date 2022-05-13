@@ -15,7 +15,7 @@ async def test_status(deploy_app):
 
 async def test_web_interface_is_protected(auth, unit):
     """Check the nagios http interface."""
-    host_url = "http://%s/nagios3/" % unit.u.public_address
+    host_url = "http://%s/nagios3/" % await unit.public_address
     r = requests.get(host_url)
     assert r.status_code == 401, "Web Interface is open to the world"
 
@@ -26,13 +26,13 @@ async def test_web_interface_is_protected(auth, unit):
 async def test_hosts_being_monitored(auth, unit):
     host_url = (
         "http://%s/cgi-bin/nagios3/status.cgi?hostgroup=all&style=hostdetail"
-    ) % unit.u.public_address
+    ) % await unit.public_address
     r = requests.get(host_url, auth=auth)
     assert "mysql" in r.text, "Nagios is not monitoring the hosts it supposed to."
 
 
 async def test_nrpe_monitors_config(relatives, unit, file_contents):
-    # look for disk root check in nrpe config
+    # look if nrpe relation is creating config files
     mysql_unit = relatives["mysql"]["app"].units[0]
-    contents = await file_contents("/etc/nagios/nrpe.d/check_disk_root.cfg", mysql_unit)
-    assert contents, "disk root check config not found."
+    contents = await file_contents("/etc/nagios/nrpe.d/check_load.cfg", mysql_unit)
+    assert contents, "config not found. Check if nrpe is creating this file"
