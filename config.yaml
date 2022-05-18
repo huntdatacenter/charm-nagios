@@ -222,7 +222,7 @@ options:
             to report warning at 5.0, 4.0 and 3.0 averages, critical at 10.0,
             6.0 and 4.0.
     pagerduty_notification_levels:
-        default: u,c,r
+        default: u,c,r,f,s
         type: string
         description: |
             A string to use for the service_notification_options in the
@@ -359,6 +359,19 @@ options:
             as the global-level config option interval_length remains at the default of 60 seconds.
             
             The default, 0, means to never re-alert.
+    notification_options:
+        default: "w,u,c,r,f,s"
+        type: string
+        description: |
+            This directive is used to define the service states for which notifications
+            can be created. Valid options are a combination of one or more of the following:
+            w = notify on WARNING service states,
+            u = notify on UNKNOWN service states,
+            c = notify on CRITICAL service states,
+            r = notify on service recoveries (OK states),
+            f = notify when the service starts and stops flapping.
+            s = notify when the scheduled downtime starts and ends.
+            If you specify n (none) as an option, the contact will not receive any type of service notifications.
     extra_contacts:
         default: ''
         type: string

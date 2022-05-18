@@ -381,6 +381,21 @@ def update_notification_interval():
         service.save()
 
 
+def update_notification_options():
+    """Update notification options of the generic-service which all services inherit from."""
+    notification_options = config("notification_options")
+
+    # set "n" (none) when this options is empty to disable notifications
+    if not notification_options:
+        notification_options = "n"
+    Model.cfg_file = MAIN_NAGIOS_CFG
+    Model.pynag_directory = os.path.join(MAIN_NAGIOS_DIR, "conf.d")
+    services = Model.Service.objects.filter(name="generic-service")
+    for service in services:
+        service.notification_options = notification_options
+        service.save()
+
+
 def get_pynag_host(target_id, owner_unit=None, owner_relation=None):
     try:
         host = Model.Host.objects.get_by_shortname(target_id)

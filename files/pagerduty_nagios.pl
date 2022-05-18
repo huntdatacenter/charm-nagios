@@ -229,6 +229,30 @@ sub enqueue_event {
 		$event{$2} = $v;
 	}
 
+	# Coerce the notification type if present.
+	my $notification_type = $event{"NOTIFICATIONTYPE"};
+	if (index($notification_type, "FLAPPING", 0) || index($notification_type, "DOWNTIME", 0)) {
+		my $service_state = $event{"SERVICESTATE"};
+		if ($opt_verbose) {
+			print STDERR "COERCING notification type: $notification_type\n";
+			print STDERR "* Service state: $service_state\n";
+		}
+
+		my $new_type;
+		if ($service_state eq "OK") {
+			$new_type = "RECOVERY";
+		} elsif ($service_state eq "CRITICAL") {
+			$new_type = "PROBLEM";
+		} else {
+			# For now; treat all other cases as problems as well
+			$new_type = "PROBLEM";
+		}
+
+		print STDERR "=> Coercing to: $new_type\n" if $opt_verbose;
+		$event{"COERCEDFROMTYPE"} = $notification_type;
+		$event{"NOTIFICATIONTYPE"} = $new_type;
+	}
+
 	# Apply any other variables that were passed in.
 	%event = (%event, %opt_fields);
 

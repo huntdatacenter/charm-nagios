@@ -34,6 +34,7 @@ from common import (
     reload_nagios,
     update_localhost,
     update_notification_interval,
+    update_notification_options,
 )
 
 # Gather facts
@@ -710,6 +711,7 @@ update_config()
 update_apache()
 update_localhost()
 update_notification_interval()
+update_notification_options()
 update_cgi_config()
 update_contacts()
 update_password("nagiosro", ro_password)
