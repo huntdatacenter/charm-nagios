@@ -382,10 +382,11 @@ def update_notification_interval():
 
 
 def update_notification_options():
-    """Update notification options of the generic-service which all services inherit from."""
+    """Update notification_options of the generic-service template."""
     notification_options = config("notification_options")
 
-    # set "n" (none) when this options is empty to disable notifications
+    # set "n" (none) when this option is set to an empty string
+    # to completely disable notifications
     if not notification_options:
         notification_options = "n"
     Model.cfg_file = MAIN_NAGIOS_CFG
