@@ -246,8 +246,8 @@ def enable_pagerduty_config():
         with open(pagerduty_cron, "w") as f2:
             f2.write(t2.render(template_values))
 
-        # Ship the pagerduty_nagios.pl script
-        shutil.copy("files/pagerduty_nagios.pl", "/usr/local/bin/pagerduty_nagios.pl")
+        # Ship the pagerduty_nagios.py script
+        shutil.copy("files/pagerduty_nagios.py", "/usr/local/bin/pagerduty_nagios.py")
 
         # Create the pagerduty queue dir
 
