@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""pagerduty_nagios.py - a Python 3 port of the pagerduty_nagios.pl script
+"""pagerduty_nagios.py - a Python 3 port of the pagerduty_nagios.pl script.
 
 PagerDuty's repo for the perl version:
 https://github.com/PagerDuty/pagerduty-nagios-pl
@@ -51,13 +51,12 @@ import logging
 import logging.handlers
 import os
 import re
-import socket
 import sys
 import time
 import traceback
 from urllib.error import HTTPError
-from urllib.request import urlopen, Request
 from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 TIMEOUT_S = 10
 
@@ -276,13 +275,14 @@ def flush_queue(args):
             args.api_base + "/create_event", data=urlencode(event).encode()
         )
         try:
-            response = urlopen(request, timeout=TIMEOUT_S)
+            urlopen(request, timeout=TIMEOUT_S)
         except HTTPError as e:
             if 400 <= e.code < 500:
                 # Client error
                 content = e.fp.read().decode()
                 logging.warning(
-                    "Nagios event in file %s REJECTED by the PagerDuty server.  Server says: %s",
+                    "Nagios event in file %s REJECTED by the PagerDuty server.  "
+                    "Server says: %s",
                     path,
                     content,
                 )
@@ -308,7 +308,7 @@ def flush_queue(args):
 def get_queue_from_dir(args):
     timestamp_file_pairs = []
     for file in os.listdir(args.queue_dir):
-        match = re.match("^pd_(\d+)_\d+.txt$", file)
+        match = re.match(r"^pd_(\d+)_\d+.txt$", file)
         if match:
             timestamp = match.group(1)
             timestamp_file_pairs.append((timestamp, file))
