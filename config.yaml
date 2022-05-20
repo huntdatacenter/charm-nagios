@@ -222,7 +222,7 @@ options:
             to report warning at 5.0, 4.0 and 3.0 averages, critical at 10.0,
             6.0 and 4.0.
     pagerduty_notification_levels:
-        default: u,c,r,f,s
+        default: "u,c,r,f,s"
         type: string
         description: |
             A string to use for the service_notification_options in the
@@ -244,7 +244,7 @@ options:
             host_check_timeout is set to 30 seconds, and it's preferred to have
             service_check_timout greater than host_check_timeout.
     service_check_timeout_state:
-        default: c
+        default: "c"
         type: string
         description: |
             This setting determines the state Nagios will report when a
