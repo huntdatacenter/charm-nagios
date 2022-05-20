@@ -7,7 +7,7 @@ https://github.com/PagerDuty/pagerduty-nagios-pl
 
 Reasons for doing this:
 
-* Easier for us to change due to langauge familiarity.
+* Easier for us to change due to language familiarity.
 
 * Ability to make alerts more meaningful to us by only including the Nagios
   values we care about.
