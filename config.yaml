@@ -384,3 +384,10 @@ options:
         type: string
         default: ''
         description: An unique site name for Nagios deployment
+    sender_email:
+        type: string
+        default: ''
+        description: |
+          The email from which Nagios will try sending emails. If
+          unset, the message will not include an explicit sender address and a
+          default value will be added by the MTA, typically “user@host”.
