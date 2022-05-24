@@ -34,6 +34,7 @@ from common import (
     reload_nagios,
     update_localhost,
     update_notification_interval,
+    update_notification_options,
 )
 
 # Gather facts
@@ -245,8 +246,8 @@ def enable_pagerduty_config():
         with open(pagerduty_cron, "w") as f2:
             f2.write(t2.render(template_values))
 
-        # Ship the pagerduty_nagios.pl script
-        shutil.copy("files/pagerduty_nagios.pl", "/usr/local/bin/pagerduty_nagios.pl")
+        # Ship the pagerduty_nagios.py script
+        shutil.copy("files/pagerduty_nagios.py", "/usr/local/bin/pagerduty_nagios.py")
 
         # Create the pagerduty queue dir
 
@@ -710,6 +711,7 @@ update_config()
 update_apache()
 update_localhost()
 update_notification_interval()
+update_notification_options()
 update_cgi_config()
 update_contacts()
 update_password("nagiosro", ro_password)

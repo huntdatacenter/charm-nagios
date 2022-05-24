@@ -16,12 +16,12 @@ define contact {
 
 define command {
        command_name     notify-service-by-pagerduty
-       command_line     /usr/local/bin/pagerduty_nagios.pl enqueue {{ proxy_switch }} -f pd_nagios_object=service -q {{ pagerduty_path }}
+       command_line     /usr/local/bin/pagerduty_nagios.py enqueue {{ proxy_switch }} -f pd_nagios_object=service -q {{ pagerduty_path }}
 }
 
 define command {
        command_name     notify-host-by-pagerduty
-       command_line     /usr/local/bin/pagerduty_nagios.pl enqueue {{ proxy_switch }} -f pd_nagios_object=host -q {{ pagerduty_path }}
+       command_line     /usr/local/bin/pagerduty_nagios.py enqueue {{ proxy_switch }} -f pd_nagios_object=host -q {{ pagerduty_path }}
 
 }
 

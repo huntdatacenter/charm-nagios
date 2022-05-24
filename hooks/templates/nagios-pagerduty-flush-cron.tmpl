@@ -4,5 +4,5 @@
 
 # Flush the nagios pagerduty alerts every minute as per
 # http://www.pagerduty.com/docs/guides/nagios-perl-integration-guide/
-* * * * *   nagios  /usr/local/bin/pagerduty_nagios.pl flush {{ proxy_switch }} --queue-dir {{ pagerduty_path }}
+* * * * *   nagios  /usr/local/bin/pagerduty_nagios.py flush {{ proxy_switch }} --queue-dir {{ pagerduty_path }}
 
