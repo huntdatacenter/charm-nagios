@@ -256,6 +256,10 @@ def customize_nrpe(service, name, extra):
     plugin = os.path.join(PLUGIN_PATH, "check_nrpe")
     args = []
     cmd_args = [plugin, "-H", "$HOSTADDRESS$"]
+    nrpe_packet_version = config("nrpe_packet_version")
+
+    if nrpe_packet_version is not None and nrpe_packet_version == 2:
+        cmd_args.extend(["-%s" % nrpe_packet_version])
 
     if name in ("mem", "swap"):
         cmd_args.extend(("-c", "check_%s" % name))
