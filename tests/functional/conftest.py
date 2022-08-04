@@ -11,6 +11,7 @@ from juju.errors import JujuError
 from juju.model import Model
 
 import pytest
+import pytest_asyncio
 
 STAT_FILE = "python3 -c \"import json; import os; s=os.stat('%s'); print(json.dumps({'uid': s.st_uid, 'gid': s.st_gid, 'mode': oct(s.st_mode), 'size': s.st_size}))\""  # noqa: E501
 
@@ -26,7 +27,7 @@ def event_loop(request):
     asyncio.set_event_loop(None)
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def controller():
     """Connect to the current controller."""
     controller = Controller()
@@ -36,7 +37,7 @@ async def controller():
 
 
 # Comment for re-using the current model
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def model(controller):
     """Create a model that lives only for the duration of the test."""
     model_name = "functest-{}".format(uuid.uuid4())
@@ -61,7 +62,7 @@ async def model(controller):
 #     await model.disconnect()
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def current_model():
     """Return the current model, does not create or destroy it."""
     model = Model()
@@ -70,7 +71,7 @@ async def current_model():
     await model.disconnect()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def get_app(model):
     """Return the application requested."""  # noqa D202
 
@@ -83,7 +84,7 @@ async def get_app(model):
     return _get_app
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def get_unit(model):
     """Return the requested <app_name>/<unit_number> unit."""  # noqa D202
 
@@ -98,7 +99,7 @@ async def get_unit(model):
     return _get_unit
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def get_entity(model, get_unit, get_app):
     """Return a unit or an application."""  # noqa D202
 
@@ -114,7 +115,7 @@ async def get_entity(model, get_unit, get_app):
     return _get_entity
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def run_command(get_unit):
     """Run a command on a unit."""  # noqa D202
 
@@ -133,7 +134,7 @@ async def run_command(get_unit):
     return _run_command
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def file_stat(run_command):
     """Run stat on a file.
 
@@ -150,7 +151,7 @@ async def file_stat(run_command):
     return _file_stat
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def file_contents(run_command):
     """Return the contents of a file."""  # noqa D202
 
@@ -168,7 +169,7 @@ async def file_contents(run_command):
     return _file_contents
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def reconfigure_app(get_app, model):
     """Apply a different config to the requested app."""  # noqa D202
 
@@ -185,7 +186,7 @@ async def reconfigure_app(get_app, model):
     return _reconfigure_app
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def create_group(run_command):
     """Create the UNIX group specified."""  # noqa D202
 
@@ -206,13 +207,13 @@ SERIES = ["xenial", "bionic"]
 ############
 # FIXTURES #
 ############
-@pytest.fixture(scope="session", params=SERIES)
+@pytest_asyncio.fixture(scope="session", params=SERIES)
 def series(request):
     """Return ubuntu version (i.e. xenial) in use in the test."""
     return request.param
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def relatives(model, series):
     nrpe = "nrpe"
     nrpe_name = "nrpe-{}".format(series)
@@ -245,7 +246,7 @@ async def relatives(model, series):
     }
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def deploy_app(relatives, model, series):
     """Return application of the charm under test."""
     app_name = "nagios-{}".format(series)
@@ -312,7 +313,7 @@ class Agent:
         return await self.u.get_public_address()
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def unit(model, deploy_app):
     """Return the unit we've deployed."""
     unit = Agent(deploy_app.units[0], deploy_app)
@@ -321,7 +322,7 @@ async def unit(model, deploy_app):
     return unit
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def auth(file_contents, unit):
     """Return the basic auth credentials."""
     nagiospwd = await file_contents("/var/lib/juju/nagios.passwd", unit.u)
