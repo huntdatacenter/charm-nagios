@@ -1,6 +1,7 @@
 from async_generator import asynccontextmanager
 
 import pytest
+import pytest_asyncio
 
 import requests
 
@@ -18,7 +19,7 @@ async def config(unit, item, test_value, post_test):
     await unit.block_until(lambda: unit.is_active("idle"))
 
 
-@pytest.fixture(params=["on", "only"])
+@pytest_asyncio.fixture(params=["on", "only"])
 async def ssl(unit, request):
     """Enable SSL before a test, then disable after test.
 
@@ -29,7 +30,7 @@ async def ssl(unit, request):
         yield value
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def extra_config(unit):
     """Enable extraconfig for a test, and revert afterwards.
 
@@ -46,7 +47,7 @@ async def extra_config(unit):
         yield
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def livestatus_path(unit):
     """Enable livestatus before a test, then disable after test.
 
@@ -57,7 +58,7 @@ async def livestatus_path(unit):
         yield app_config["livestatus_path"]["value"]
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def livestatus_socket(unit):
     """Enable livestatus socket before a test, then disable after test.
 
@@ -68,7 +69,7 @@ async def livestatus_socket(unit):
         yield app_config["livestatus_enable_xinetd"]["value"]
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def enable_pagerduty(unit):
     """Enable enable_pagerduty before first test, then disable after last test.
 
@@ -79,7 +80,7 @@ async def enable_pagerduty(unit):
         yield app_config["pagerduty_path"]["value"]
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def enable_snmp_traps(unit):
     """Set send_traps_to before first test, then disable after last test.
 
@@ -90,7 +91,7 @@ async def enable_snmp_traps(unit):
         yield app_config["send_traps_to"]["value"]
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def set_extra_contacts(unit):
     """Set extra contacts."""
     name = "contact_name_1"
@@ -105,7 +106,7 @@ async def set_extra_contacts(unit):
         yield name
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def set_multiple_admins(unit):
     admins = "admin1@localhost,admin2@localhost"
     async with config(unit, "admin_email", admins, "root@localhost"):
