@@ -220,8 +220,8 @@ def cleanup_leftover_hosts(all_relations):
     remove the extras.
     """
     expected_paths = set()
-    for units in all_relations.itervalues():
-        for relation_settings in units.itervalues():
+    for units in all_relations.values():
+        for relation_settings in units.values():
             target_id = relation_settings[TARGET_ID_KEY]
             expected_path = get_nagios_host_config_path(target_id)
             expected_paths.add(expected_path)

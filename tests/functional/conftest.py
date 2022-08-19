@@ -11,6 +11,7 @@ from juju.errors import JujuError
 from juju.model import Model
 
 import pytest
+
 import pytest_asyncio
 
 STAT_FILE = "python3 -c \"import json; import os; s=os.stat('%s'); print(json.dumps({'uid': s.st_uid, 'gid': s.st_gid, 'mode': oct(s.st_mode), 'size': s.st_size}))\""  # noqa: E501
