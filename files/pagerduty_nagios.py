@@ -189,7 +189,7 @@ def configure_logging(verbose):
 REQUIRED_KEYS = [
     "CONTACTPAGER",  # The nagios key is provided here.
     "HOSTNAME",
-    "HOSTSTATE",     # LP#1987039
+    "HOSTSTATE",  # LP#1987039
     "NOTIFICATIONTYPE",  # Value is RECOVERY or PROBLEM.
     # PROBLEM creates alerts, RECOVERY clears them.
     "SERVICESTATE",
