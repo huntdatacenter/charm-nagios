@@ -327,16 +327,10 @@ def update_commands():
             max_notifications
         )
 
-    sender_email = hookenv.config("sender_email").strip()
-    if sender_email:
-        # add -r flag for /usr/bin/mail here if not an empty string
-        # not using f-string for backwards compatibility
-        sender_email = "-r " + sender_email
-
     template_values = {
         "host_mail_limiter": host_mail_limiter,
         "service_mail_limiter": service_mail_limiter,
-        "sender_email": sender_email,
+        "sender_email": hookenv.config("sender_email").strip(),
     }
 
     with open("hooks/templates/commands-cfg.tmpl", "r") as f:
