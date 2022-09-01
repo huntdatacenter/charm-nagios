@@ -66,6 +66,7 @@ livestatus_enable_xinetd = hookenv.config("livestatus_enable_xinetd")
 livestatus_xinetd_port = hookenv.config("livestatus_xinetd_port")
 livestatus_xinetd_only_from = hookenv.config("livestatus_xinetd_only_from")
 
+
 # this global var will collect contactgroup members that must be forced
 # it will be changed by functions
 forced_contactgroup_members = []
@@ -330,6 +331,7 @@ def update_commands():
     template_values = {
         "host_mail_limiter": host_mail_limiter,
         "service_mail_limiter": service_mail_limiter,
+        "sender_email": hookenv.config("sender_email").strip(),
     }
 
     with open("hooks/templates/commands-cfg.tmpl", "r") as f:
