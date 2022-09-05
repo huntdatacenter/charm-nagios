@@ -43,7 +43,7 @@ submodules-update:
 	@echo "Pulling latest updates for submodules"
 	@git submodule update --init --recursive --remote --merge
 
-build: submodules-update
+build: clean submodules-update
 	@echo "Building charm to base directory ${PROJECTPATH}/${CHARM_NAME}.charm"
 	@-git rev-parse --abbrev-ref HEAD > ./repo-info
 	@-git describe --always > ./version

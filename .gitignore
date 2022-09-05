@@ -14,7 +14,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 .tox
-reports/
+report/
 htmlcov/
 
 # Log files
