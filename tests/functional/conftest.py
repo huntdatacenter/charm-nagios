@@ -219,7 +219,7 @@ async def relatives(model, series):
     nrpe = "nrpe"
     nrpe_name = "nrpe-{}".format(series)
     nrpe_app = await model.deploy(
-        "cs:" + nrpe, application_name=nrpe_name, series=series, config={}, num_units=0
+        "ch:" + nrpe, application_name=nrpe_name, series=series, config={}, num_units=0
     )
 
     mysql = "mysql"
@@ -229,7 +229,7 @@ async def relatives(model, series):
 
     mysql_name = "mysql-{}".format(series)
     mysql_app = await model.deploy(
-        "cs:" + mysql, application_name=mysql_name, series=series, config={}
+        "ch:" + mysql, application_name=mysql_name, series=series, config={}
     )
 
     await model.add_relation(
