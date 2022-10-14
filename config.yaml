@@ -404,3 +404,12 @@ options:
           The email from which Nagios will try sending emails. If
           unset, the message will not include an explicit sender address and a
           default value will be added by the MTA, typically “user@host”.
+    nrpe_packet_version:
+       default: 3
+       type: int
+       description: |
+           Defines the nrpe packet version to use
+
+           The valid options are 2 and 3
+
+           https://support.nagios.com/kb/article.php?id=518
