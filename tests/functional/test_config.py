@@ -151,7 +151,7 @@ async def test_livestatus_xinetd(unit, livestatus_path, livestatus_socket, run_c
     out = await run_command(
         "echo -e 'GET hosts\nColumns: name\n' | nc 127.0.0.1 6557", unit.u
     )
-    assert "nagios" in out["Stdout"], "Livestatus output is not expected"
+    assert "nagios" in out["stdout"], "Livestatus output is not expected"
 
 
 async def test_pager_duty(unit, enable_pagerduty, file_stat):

@@ -129,7 +129,7 @@ async def run_command(get_unit):
         """
         unit = target if type(target) is juju.unit.Unit else await get_unit(target)
         action = await unit.run(cmd)
-
+        await action.wait()
         return action.results
 
     return _run_command
@@ -147,7 +147,7 @@ async def file_stat(run_command):
         cmd = STAT_FILE % path
         results = await run_command(cmd, target)
 
-        return json.loads(results["Stdout"])
+        return json.loads(results["stdout"])
 
     return _file_stat
 
@@ -165,7 +165,7 @@ async def file_contents(run_command):
         cmd = "cat {}".format(path)
         results = await run_command(cmd, target)
 
-        return results.get("Stdout")
+        return results.get("stdout")
 
     return _file_contents
 
