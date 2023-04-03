@@ -269,7 +269,6 @@ def apply_relation_config(units, all_hosts, new_file_set):  # noqa: C901
         model_id = relation_settings.get(MODEL_ID_KEY)
 
         if machine_id:
-
             container_regex = re.compile(r"(\d+)/lx[cd]/\d+")
             if container_regex.search(machine_id):
                 parent_machine = container_regex.search(machine_id).group(1)
