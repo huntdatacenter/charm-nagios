@@ -1,4 +1,7 @@
-juju
+# juju: Needs to be below 3.1 to maintain compatibility with Juju controller < 3.0
+# juju: Latest release in 2.9.x seems to contain bug that hangs forever when awaiting
+# Action.wait()
+juju >3.0,<3.1
 requests
 pytest
 pytest-asyncio
