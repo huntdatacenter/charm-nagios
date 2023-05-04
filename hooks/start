@@ -1,4 +1,4 @@
 #!/bin/bash
-service nagios3 start || :
+service nagios4 start || :
 service apache2 start || :
 status-set active 'ready'

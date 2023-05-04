@@ -15,7 +15,7 @@ async def test_status(deploy_app):
 
 async def test_web_interface_is_protected(auth, unit):
     """Check the nagios http interface."""
-    host_url = "http://%s/nagios3/" % await unit.public_address
+    host_url = "http://%s/nagios4/" % await unit.public_address
     r = requests.get(host_url)
     assert r.status_code == 401, "Web Interface is open to the world"
 
@@ -25,7 +25,7 @@ async def test_web_interface_is_protected(auth, unit):
 
 async def test_hosts_being_monitored(auth, unit):
     host_url = (
-        "http://%s/cgi-bin/nagios3/status.cgi?hostgroup=all&style=hostdetail"
+        "http://%s/cgi-bin/nagios4/status.cgi?hostgroup=all&style=hostdetail"
     ) % await unit.public_address
     r = requests.get(host_url, auth=auth)
     assert "mysql" in r.text, "Nagios is not monitoring the hosts it supposed to."

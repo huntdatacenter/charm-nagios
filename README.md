@@ -19,7 +19,7 @@ This should result in your Nagios monitoring all of the service units.
 
 There is an [NRPE subordinate charm](https://jujucharms.com/nrpe/) which must be used for any local monitors.  See the `nrpe` charm's README for information on how to make use of it.
 
-You can expose the service and browse to `http://x.x.x.x/nagios3` to get to the web UI, following the example:
+You can expose the service and browse to `http://x.x.x.x/nagios4` to get to the web UI, following the example:
 
     juju expose central-monitor
     juju status central-monitor
@@ -30,7 +30,7 @@ Will get you the public IP of the web interface.
 
 - `enable_livestatus` - Setting to enable the [livestatus module](https://mathias-kettner.de/checkmk_livestatus.html). This is an easy interface to get data out of Nagios.
 
-- `livestatus_path` - Configuration of where the livestatus module is stored - defaults to /var/lib/nagios3/livestatus/socket.
+- `livestatus_path` - Configuration of where the livestatus module is stored - defaults to /var/lib/nagios4/livestatus/socket.
 
 - `livestatus_args` - Arguments to be passed to the livestatus module, defaults to empty.
 
@@ -40,7 +40,7 @@ Will get you the public IP of the web interface.
 
 - `pagerduty_key` - Pagerduty Integration key to use for notifications (configured within a PD service, as "Nagios integration")
 
-- `pagerduty_path` - Path for Pagerduty notifications to be queued, default is /var/lib/nagios3/pagerduty.
+- `pagerduty_path` - Path for Pagerduty notifications to be queued, default is /var/lib/nagios4/pagerduty.
 
 # Configuration
 
@@ -50,15 +50,13 @@ Will get you the public IP of the web interface.
 
 - `check_external_commands` - Config variable to enable checking external commands.
 
-- `command_check_interval` - How often to check for external commands.
-
 - `command_file` - File that Nagios checks for external command requests.
 
 - `debug_level` - Specify the debug level for nagios.  See the docs for more details.
 
 - `debug_verbosity` - How verbose will the debug logs be - 0 is brief, 1 is more detailed and 2 is very detailed.
 
-- `debug_file` - Path for the debug file - defaults to /var/log/nagios3/nagios.debug.
+- `debug_file` - Path for the debug file - defaults to /var/log/nagios4/nagios.debug.
 
 - `daemon_dumps_core` - Option to determine if Nagios is allowed to create a core dump.
 
@@ -68,7 +66,7 @@ Will get you the public IP of the web interface.
 
 - `log_rotation_method` - Log rotation method that Nagios should use to rotate the main logfile, defaults to "d".
 
-- `log_archive_path` - Path for archived log files, defaults to /var/log/nagios3/archives
+- `log_archive_path` - Path for archived log files, defaults to /var/log/nagios4/archives
 - `use_syslog` - Log messages to syslog as well as main file.
 
 - `password` - Password to use for administrative access instead of a generated password.

@@ -25,28 +25,29 @@ else
   chmod 0400 $PASSWD_FILE
 fi
 
-echo nagios3-cgi nagios3/adminpassword password $PASSWORD | debconf-set-selections
-echo nagios3-cgi nagios3/adminpassword-repeat password $PASSWORD | debconf-set-selections
+echo nagios4-cgi nagios4/adminpassword password $PASSWORD | debconf-set-selections
+echo nagios4-cgi nagios4/adminpassword-repeat password $PASSWORD | debconf-set-selections
 
 DEBIAN_FRONTEND=noninteractive apt-get -qy \
-  install nagios3 nagios-plugins python-cheetah python-jinja2 dnsutils debconf-utils nagios-nrpe-plugin pynag python-apt python-yaml python-enum34
+  install nagios4 nagios-plugins-contrib python3-cheetah python3-jinja2 dnsutils debconf-utils nagios-nrpe-plugin pynag python3-pynag python3-apt python3-yaml
 
 scripts/postfix_loopback_only.sh
 
 if [ -f $CHARM_DIR/files/hostgroups_nagios2.cfg ]; then
     # Write the new hostgroups_nagios2.cfg file to prevent servers being classified as Debian.
-    cp -v $CHARM_DIR/files/hostgroups_nagios2.cfg /etc/nagios3/conf.d/hostgroups_nagios2.cfg
+    cp -v $CHARM_DIR/files/hostgroups_nagios2.cfg /etc/nagios4/conf.d/hostgroups_nagios2.cfg
     # Remove the services configuration file to eliminiate the need for ssh and localhost groups.
-    rm -vf /etc/nagios3/conf.d/services_nagios2.cfg
+    rm -vf /etc/nagios4/conf.d/services_nagios2.cfg
     # Remove the ext file to eliminate the need for ssh and localhost groups.
-    rm -vf /etc/nagios3/conf.d/extinfo_nagios2.cfg
+    rm -vf /etc/nagios4/conf.d/extinfo_nagios2.cfg
 fi
 
+# TODO livestatus need update to work on focal/jammy
 enable_livestatus=$(config-get enable_livestatus)
 livestatus_path=$(config-get livestatus_path)
 livestatus_dir=$(dirname $livestatus_path)
 
-if [ "$enable_livestatus" ]; then
+if [ "$enable_livestatus" ] && [ "$enable_livestatus" != "False" ]; then
     # install check-mk-livestatus
     DEBIAN_FRONTEND=noninteractive apt-get -qy install check-mk-livestatus
     # fix permissions on the livestatus directory
@@ -57,15 +58,20 @@ if [ "$enable_livestatus" ]; then
 fi
 
 if [ -f $CHARM_DIR/files/index.html ]; then
-    # Replace the default index.html file to redirect to nagios3/
+    # Replace the default index.html file to redirect to nagios4/
     cp -v $CHARM_DIR/files/index.html /var/www/html/index.html
 fi
 
+a2enmod auth_digest
+a2enmod authz_groupfile
+systemctl restart apache2
+
 # || :'s are for idempotency
-service nagios3 stop || :
-dpkg-statoverride --update --add nagios www-data 2710 /var/lib/nagios3/rw || :
-dpkg-statoverride --update --add nagios nagios 751 /var/lib/nagios3 || :
-service nagios3 start
+service nagios4 stop || :
+dpkg-statoverride --update --add nagios www-data 2710 /var/lib/nagios4/rw || :
+dpkg-statoverride --update --add nagios nagios 751 /var/lib/nagios4 || :
+dpkg-statoverride --update --add root root 644 /etc/nagios4/resource.cfg || :
+service nagios4 start
 
 # install files needed for sending snmp traps functionality
 cp -v $CHARM_DIR/files/mibs/NAGIOS-NOTIFY-MIB /usr/share/snmp/mibs/

@@ -1,6 +1,6 @@
 name: nagios
-summary: Nagios Core 3 monitoring.
-maintainer: LMA Charmers <llama-charmers@lists.ubuntu.com>
+summary: Nagios Core 4 monitoring.
+maintainer: HUTN Cloud <cloud@hunt.ntnu.no>
 description: |
   Nagios is a monitoring and management system for hosts, services, and
   networks.

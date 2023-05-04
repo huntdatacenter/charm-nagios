@@ -3,9 +3,9 @@ monitors:
     local:
         procrunning:
             min: 1
-            name: '/usr/sbin/nagios3'
+            name: '/usr/sbin/nagios4'
     remote:
         http:
             nagios:
-                path: /nagios3/
+                path: /nagios4/
                 status: 'HTTP/1.1 401'

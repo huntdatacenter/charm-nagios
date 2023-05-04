@@ -118,7 +118,7 @@ async def set_multiple_admins(unit):
 # TESTS #
 #########
 async def test_web_interface_with_ssl(auth, unit, ssl):
-    http_url = "http://%s/nagios3/" % await unit.public_address
+    http_url = "http://%s/nagios4/" % await unit.public_address
     if ssl == "only":
         with pytest.raises(requests.ConnectionError):
             requests.get(http_url, auth=auth)
@@ -126,7 +126,7 @@ async def test_web_interface_with_ssl(auth, unit, ssl):
         r = requests.get(http_url, auth=auth)
         assert r.status_code == 200, "HTTP Admin login failed"
 
-    https_url = "https://%s/nagios3/" % await unit.public_address
+    https_url = "https://%s/nagios4/" % await unit.public_address
     r = requests.get(https_url, auth=auth, verify=False)
     assert r.status_code == 200, "HTTPs Admin login failed"
 
@@ -134,7 +134,7 @@ async def test_web_interface_with_ssl(auth, unit, ssl):
 @pytest.mark.usefixtures("extra_config")
 async def test_extra_config(auth, unit):
     host_url = (
-        "http://%s/cgi-bin/nagios3/status.cgi?"
+        "http://%s/cgi-bin/nagios4/status.cgi?"
         "hostgroup=all&style=hostdetail" % await unit.public_address
     )
     r = requests.get(host_url, auth=auth)
@@ -157,12 +157,12 @@ async def test_livestatus_xinetd(unit, livestatus_path, livestatus_socket, run_c
 async def test_pager_duty(unit, enable_pagerduty, file_stat):
     stat = await file_stat(enable_pagerduty, unit.u)
     assert stat["size"] != 0, "Directory %s wasn't a non-zero size" % enable_pagerduty
-    stat = await file_stat("/etc/nagios3/conf.d/pagerduty_nagios.cfg", unit.u)
+    stat = await file_stat("/etc/nagios4/conf.d/pagerduty_nagios.cfg", unit.u)
     assert stat["size"] != 0, "pagerduty_config wasn't a non-zero sized file"
 
 
 async def test_snmp_traps(unit, enable_snmp_traps, file_stat, file_contents):
-    traps_cfg_path = "/etc/nagios3/conf.d/traps.cfg"
+    traps_cfg_path = "/etc/nagios4/conf.d/traps.cfg"
     stat = await file_stat(traps_cfg_path, unit.u)
     assert stat["size"] != 0, "snmp traps config wasn't a non-zero sized file"
     traps_cfg_content = await file_contents(traps_cfg_path, unit.u)
@@ -173,7 +173,7 @@ async def test_snmp_traps(unit, enable_snmp_traps, file_stat, file_contents):
 
 async def test_extra_contacts(auth, unit, set_extra_contacts):
     contancts_url = (
-        "http://%s/cgi-bin/nagios3/config.cgi?type=contacts" % await unit.public_address
+        "http://%s/cgi-bin/nagios4/config.cgi?type=contacts" % await unit.public_address
     )
     contact_name = set_extra_contacts
     r = requests.get(contancts_url, auth=auth)
@@ -183,7 +183,7 @@ async def test_extra_contacts(auth, unit, set_extra_contacts):
         contact_name.capitalize() in r.text
     ), "Contact name alias is not the capitalized name."
     contactgroups_url = (
-        "http://%s/cgi-bin/nagios3/config.cgi"
+        "http://%s/cgi-bin/nagios4/config.cgi"
         "?type=contactgroups" % await unit.public_address
     )
 
@@ -194,7 +194,7 @@ async def test_extra_contacts(auth, unit, set_extra_contacts):
 
 async def test_multiple_admin_contacts(auth, unit, set_multiple_admins):
     contancts_url = (
-        "http://%s/cgi-bin/nagios3/config.cgi?type=contacts" % await unit.public_address
+        "http://%s/cgi-bin/nagios4/config.cgi?type=contacts" % await unit.public_address
     )
     admins = set_multiple_admins
     r = requests.get(contancts_url, auth=auth)

@@ -8,17 +8,17 @@ monitors:
         # procrunning checks for a running process named X (no path)
         procrunning:
             # Multiple procrunning can be defined, this is the "name" of it
-            nagios3:
+            nagios4:
                 min: 1
                 max: 1
-                executable: nagios3
+                executable: nagios4
     # Remote monitors can be polled directly by a remote system
     remote:
         # do a request on the HTTP protocol
         http:
             nagios:
                 port: 80
-                path: /nagios3/
+                path: /nagios4/
                 # expected status response (otherwise just look for 200)
                 status: 'HTTP/1.1 401'
                 # Use as the Host: header (the server address will still be used to connect() to)

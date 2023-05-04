@@ -79,22 +79,22 @@ def test_nrpe_monitor():
 
 #Validate that the web interface has htpasswd authentication
 def test_web_interface_is_protected():
-    r = requests.get("http://%s/nagios3/" % nagios_unit.info['public-address'])
+    r = requests.get("http://%s/nagios4/" % nagios_unit.info['public-address'])
     if r.status_code != 401:
         amulet.raise_status(amulet.FAIL, msg="Web Interface open to the world")
     #validate that our configured admin is valid
     nagpwd = nagios_unit.file_contents('/var/lib/juju/nagios.passwd').strip()
-    r = requests.get("http://%s/nagios3/" % nagios_unit.info['public-address'],
+    r = requests.get("http://%s/nagios4/" % nagios_unit.info['public-address'],
                      auth=('nagiosadmin', nagpwd))
     if r.status_code != 200:
         amulet.raise_status(amulet.FAIL, msg="Web Admin login failed")
 
 
 def text_extra_config_is_written():
-    extracfg = nagios_unit.file_stat('/etc/nagios3/conf.d/extra.cfg')
+    extracfg = nagios_unit.file_stat('/etc/nagios4/conf.d/extra.cfg')
     if not extracfg:
         amulet.raise_status(amulet.FAIL, msg="Extra Config missing")
-    extracont = nagios_unit.file_contents('/etc/nagios3/conf.d/extra.cfg')
+    extracont = nagios_unit.file_contents('/etc/nagios4/conf.d/extra.cfg')
     if extracont.find('#amulet') == -1:
         amulet.raise_status(amulet.FAIL, msg="Missing extra config contents")
 

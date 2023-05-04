@@ -19,6 +19,7 @@ parts:
       - metadata.yaml
       - README.md
       - bin/*
+      - monitors.yaml
 
 bases:
   - build-on:

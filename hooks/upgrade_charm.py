@@ -51,10 +51,10 @@ nagios_group = hookenv.config("nagios_group")
 ssl_config = str(hookenv.config("ssl")).lower()
 charm_dir = os.environ["CHARM_DIR"]
 cert_domain = hookenv.unit_get("public-address")
-nagios_cfg = "/etc/nagios3/nagios.cfg"
-nagios_cgi_cfg = "/etc/nagios3/cgi.cfg"
-pagerduty_cfg = "/etc/nagios3/conf.d/pagerduty_nagios.cfg"
-traps_cfg = "/etc/nagios3/conf.d/traps.cfg"
+nagios_cfg = "/etc/nagios4/nagios.cfg"
+nagios_cgi_cfg = "/etc/nagios4/cgi.cfg"
+pagerduty_cfg = "/etc/nagios4/conf.d/pagerduty_nagios.cfg"
+traps_cfg = "/etc/nagios4/conf.d/traps.cfg"
 pagerduty_cron = "/etc/cron.d/nagios-pagerduty-flush"
 password = hookenv.config("password")
 ro_password = hookenv.config("ro-password")
@@ -148,17 +148,17 @@ def parse_extra_contacts(yaml_string):
 
 
 # If the charm has extra configuration provided, write that to the
-# proper nagios3 configuration file, otherwise remove the config
+# proper nagios4 configuration file, otherwise remove the config
 def write_extra_config():
     # Be predjudice about this - remove the file always.
 
-    if host.file_hash("/etc/nagios3/conf.d/extra.cfg") is not None:
-        os.remove("/etc/nagios3/conf.d/extra.cfg")
+    if host.file_hash("/etc/nagios4/conf.d/extra.cfg") is not None:
+        os.remove("/etc/nagios4/conf.d/extra.cfg")
     # If we have a config, then write it. the hook reconfiguration will
     # handle the details
 
     if extra_config is not None:
-        host.write_file("/etc/nagios3/conf.d/extra.cfg", extra_config)
+        host.write_file("/etc/nagios4/conf.d/extra.cfg", extra_config)
 
 
 # Equivalent of mkdir -p, since we can't rely on
@@ -338,7 +338,7 @@ def update_commands():
         template_def = f.read()
 
     t = Template(template_def)
-    with open("/etc/nagios3/commands.cfg", "w") as f:
+    with open("/etc/nagios4/commands.cfg", "w") as f:
         f.write(t.render(template_values))
 
     reload_nagios()
@@ -412,7 +412,7 @@ def update_contacts():
         template_def = f.read()
 
     t = Template(template_def)
-    with open("/etc/nagios3/conf.d/contacts_nagios2.cfg", "w") as f:
+    with open("/etc/nagios4/conf.d/contacts_nagios2.cfg", "w") as f:
         f.write(t.render(template_values))
 
     reload_nagios()
@@ -539,7 +539,7 @@ def update_config():
         template_def = f.read()
 
     t = Template(template_def)
-    with open("/etc/nagios3/conf.d/localhost_nagios2.cfg", "w") as f:
+    with open("/etc/nagios4/conf.d/localhost_nagios2.cfg", "w") as f:
         f.write(t.render(template_values))
 
     reload_nagios()
@@ -663,12 +663,12 @@ def update_password(account, password):
             f.write(password)
             os.fchmod(f.fileno(), 0o0400)
         subprocess.call(
-            ["htpasswd", "-b", "/etc/nagios3/htpasswd.users", account, password]
+            ["htpasswd", "-b", "/etc/nagios4/htpasswd.users", account, password]
         )
     else:
         """password was empty, it has been removed. We should delete the account"""
         os.path.isfile(account_file) and os.remove(account_file)
-        subprocess.call(["htpasswd", "-D", "/etc/nagios3/htpasswd.users", account])
+        subprocess.call(["htpasswd", "-D", "/etc/nagios4/htpasswd.users", account])
 
 
 def configure_livestatus_xinetd():

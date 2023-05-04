@@ -21,15 +21,15 @@ from charmhelpers.core.host import service_reload
 
 from pynag import Model
 
-INPROGRESS_DIR = "/etc/nagios3-inprogress"
-INPROGRESS_CFG = "/etc/nagios3-inprogress/nagios.cfg"
-INPROGRESS_CONF_D = "/etc/nagios3-inprogress/conf.d"
-OLD_CHARM_CFG = "/etc/nagios3-inprogress/conf.d/charm.cfg"
-HOST_TEMPLATE = "/etc/nagios3-inprogress/conf.d/juju-host_{}.cfg"
-HOSTGROUP_TEMPLATE = "/etc/nagios3-inprogress/conf.d/juju-hostgroup_{}.cfg"
-MAIN_NAGIOS_BAK = "/etc/nagios3.bak"
-MAIN_NAGIOS_DIR = "/etc/nagios3"
-MAIN_NAGIOS_CFG = "/etc/nagios3/nagios.cfg"
+INPROGRESS_DIR = "/etc/nagios4-inprogress"
+INPROGRESS_CFG = "/etc/nagios4-inprogress/nagios.cfg"
+INPROGRESS_CONF_D = "/etc/nagios4-inprogress/conf.d"
+OLD_CHARM_CFG = "/etc/nagios4-inprogress/conf.d/charm.cfg"
+HOST_TEMPLATE = "/etc/nagios4-inprogress/conf.d/juju-host_{}.cfg"
+HOSTGROUP_TEMPLATE = "/etc/nagios4-inprogress/conf.d/juju-hostgroup_{}.cfg"
+MAIN_NAGIOS_BAK = "/etc/nagios4.bak"
+MAIN_NAGIOS_DIR = "/etc/nagios4"
+MAIN_NAGIOS_CFG = "/etc/nagios4/nagios.cfg"
 PLUGIN_PATH = "/usr/lib/nagios/plugins"
 
 MODEL_ID_KEY = "model_id"
@@ -611,7 +611,7 @@ def reload_nagios(max_attempts=30):
     last_reload_message = _get_last_reload_message()
     for i in range(max_attempts):
         log("Reloading nagios, attempt {}".format(i + 1), level="info")
-        service_reload("nagios3")
+        service_reload("nagios4")
         log("Reload signal sent to nagios", level="debug")
         reload_detected = False
         for _ in range(10):
@@ -639,7 +639,7 @@ def reload_nagios(max_attempts=30):
 
 def _get_last_reload_message():
     stdout, _ = subprocess.Popen(
-        'tail -n1000 /var/log/nagios3/nagios.log | grep -e "Caught SIGHUP, restarting"',
+        'tail -n1000 /var/log/nagios4/nagios.log | grep -e "Caught SIGHUP, restarting"',
         shell=True,
         stdout=subprocess.PIPE,
     ).communicate()

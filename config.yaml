@@ -5,7 +5,7 @@ options:
         description: |
             Any additional nagios configuration you would like to
             add can be set into this element. It will be placed in
-            /etc/nagios3/conf.d/extra.cfg
+            /etc/nagios4/conf.d/extra.cfg
     flap_detection:
         type: boolean
         default: true
@@ -50,7 +50,7 @@ options:
             Config variable to enable livestatus module or not.
     livestatus_path:
         type: string
-        default: "/var/lib/nagios3/livestatus/socket"
+        default: "/var/lib/nagios4/livestatus/socket"
         description: |
             Default path to livestatus socket, if enabled via enable_livestatus
     livestatus_args:
@@ -92,14 +92,9 @@ options:
         default: 1
         description: |
             Config variable to enable checking external commands - 0 is disable, 1 is enable.
-    command_check_interval:
-        type: string
-        default: "-1"
-        description: |
-            How often to check for external commands.
     command_file:
         type: string
-        default: /var/lib/nagios3/rw/nagios.cmd
+        default: /var/lib/nagios4/rw/nagios.cmd
         description: |
             File that Nagios checks for external command requests.
     debug_level:
@@ -115,7 +110,7 @@ options:
             and 2 is very detailed.
     debug_file:
         type: string
-        default: "/var/log/nagios3/nagios.debug"
+        default: "/var/log/nagios4/nagios.debug"
         description: |
             Path for the debug file.
     daemon_dumps_core:
@@ -148,7 +143,7 @@ options:
             Pagerduty API key to use for notifications
     pagerduty_path:
         type: string
-        default: "/var/lib/nagios3/pagerduty"
+        default: "/var/lib/nagios4/pagerduty"
         description: |
             Path for Pagerduty notifications to be queued.
     email_max_notifications:
@@ -175,7 +170,7 @@ options:
             Log rotation method that Nagios should use to rotate the main logfile.
     log_archive_path:
         type: string
-        default: "/var/log/nagios3/archives"
+        default: "/var/log/nagios4/archives"
         description: |
             Path for archived log files
     use_syslog:

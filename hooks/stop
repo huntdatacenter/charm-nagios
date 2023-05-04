@@ -1,4 +1,4 @@
 #!/bin/bash
 service apache2 stop || :
-service nagios3 stop || :
+service nagios4 stop || :
 status-set blocked 'stopped'
