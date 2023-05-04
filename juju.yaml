@@ -1,0 +1,74 @@
+package_update: true
+
+packages:
+  - python3-pip
+  - jq
+  - tox
+  - gnome-keyring
+
+bootcmd:
+  - printf "[Resolve]\nDNS=1.1.1.1\n" > /etc/systemd/resolved.conf
+  - [systemctl, restart, systemd-resolved]
+
+snap:
+  commands:
+    - snap install multipass-sshfs
+    # - snap install lxd --channel=5.0/stable
+    - snap install juju --channel=3.1/stable
+    - snap install charmcraft --classic --channel=1.7/stable
+    # - snap install charm --classic --channel=stable
+    # - snap refresh
+
+runcmd:
+  - DEBIAN_FRONTEND=noninteractive apt -y upgrade
+
+  - |
+    # disable swap
+    sysctl -w vm.swappiness=0
+    echo "vm.swappiness = 0" | tee -a /etc/sysctl.conf
+    swapoff -a
+
+  - |
+    # disable unnecessary services
+    systemctl disable man-db.timer man-db.service --now
+    systemctl disable apport.service apport-autoreport.service  --now
+    systemctl disable apt-daily.service apt-daily.timer --now
+    systemctl disable apt-daily-upgrade.service apt-daily-upgrade.timer --now
+    systemctl disable unattended-upgrades.service --now
+    systemctl disable motd-news.service motd-news.timer --now
+    systemctl disable bluetooth.target --now
+    systemctl disable ua-messaging.service ua-messaging.timer --now
+    systemctl disable ua-timer.timer ua-timer.service --now
+    systemctl disable systemd-tmpfiles-clean.timer --now
+
+  - |
+    # apt cleanup
+    apt remove -y landscape-client landscape-common
+    apt-get autoremove -y
+
+  - |
+    adduser ubuntu lxd
+
+  - |
+    # setup charmcraft
+    lxd init --auto
+    # lxd init --auto --storage-backend zfs --storage-create-loop 30 --storage-pool lxd
+    # lxc network set lxdbr0 ipv6.address none
+
+  - |
+    # Make sure juju directory is there
+    sudo -u ubuntu mkdir -p /home/ubuntu/.local/share/juju
+    sudo -u ubuntu HOME=/home/ubuntu juju
+    sudo -u ubuntu bash -c "echo alias watch-juju=\'watch --color -n1 juju status --color\' >> /home/ubuntu/.bashrc"
+
+  - |
+    # Create symlink for compatibility but mount inside home so that juju snap can access
+    ln -sf /home/ubuntu/vagrant /vagrant
+
+  # - |
+  #   # Bootstrap juju controller
+  #   sudo -u ubuntu HOME=/home/ubuntu juju
+  #   sudo -u ubuntu HOME=/home/ubuntu juju bootstrap localhost lxd
+
+final_message: "The system is finally up, after $UPTIME seconds"
+
