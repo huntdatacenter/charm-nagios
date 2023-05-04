@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+
 # Copyright Canonical 2021 Canonical Ltd. All Rights Reserved
 #
 # This program is free software: you can redistribute it and/or modify

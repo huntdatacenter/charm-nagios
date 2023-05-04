@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Rewritten from bash to python 3/2/2014 for charm helper inclusion
 # of SSL-Everywhere!
@@ -12,6 +12,7 @@ import shutil
 import stat
 import string
 import subprocess
+from hashlib import md5
 
 try:
     from enum import Enum  # noqa: F401
@@ -508,7 +509,6 @@ def update_config():
         "livestatus_path": livestatus_path,
         "livestatus_args": hookenv.config("livestatus_args"),
         "check_external_commands": hookenv.config("check_external_commands"),
-        "command_check_interval": hookenv.config("command_check_interval"),
         "command_file": hookenv.config("command_file"),
         "debug_file": hookenv.config("debug_file"),
         "debug_verbosity": hookenv.config("debug_verbosity"),
@@ -654,7 +654,16 @@ class Apache2Site:
         hookenv.close_port(self.port)
 
 
-def update_password(account, password):
+def ht5(x):
+    return md5(':'.join(x).encode()).hexdigest()
+
+
+def generate_htdigest(account, password, realm):
+    htpwd = ':'.join([account, realm, ht5([account, realm, password])])
+    return htpwd
+
+
+def update_password(account, password, realm="Restricted Nagios Access Zone"):
     """Update the charm and Apache's record of the password for the supplied account."""
     account_file = "".join(["/var/lib/juju/nagios.", account, ".passwd"])
 
@@ -662,13 +671,21 @@ def update_password(account, password):
         with open(account_file, "w") as f:
             f.write(password)
             os.fchmod(f.fileno(), 0o0400)
-        subprocess.call(
-            ["htpasswd", "-b", "/etc/nagios4/htpasswd.users", account, password]
-        )
+        with open("/etc/nagios4/htdigest.users", "a+") as f:
+            f.write(generate_htdigest(account, password, realm))
+            f.write("\n")
+        # subprocess.call([
+        #     "htpasswd", "-b", "/etc/nagios4/htpasswd.users",
+        #     account,
+        #     password
+        # ])
     else:
         """password was empty, it has been removed. We should delete the account"""
         os.path.isfile(account_file) and os.remove(account_file)
-        subprocess.call(["htpasswd", "-D", "/etc/nagios4/htpasswd.users", account])
+        # subprocess.call(["htpasswd", "-D", "/etc/nagios4/htpasswd.users", account])
+        subprocess.call([
+            "sed", "-i", "/^{account}:/d".format(account=account),
+            "/etc/nagios4/htdigest.users"])
 
 
 def configure_livestatus_xinetd():

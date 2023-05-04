@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # website-relation-joined - Set the hostname into remote nagios http consumers
 # Copyright Canonical 2017 Canonical Ltd. All Rights Reserved
 #

@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+
 # monitors-relation-changed - Process monitors.yaml into remote nagios monitors
 # Copyright Canonical 2012 Canonical Ltd. All Rights Reserved
 # Author: Clint Byrum <clint.byrum@canonical.com>
@@ -124,13 +125,13 @@ def main(argv, full_rewrite=False):  # noqa: C901
     # Hack to work around http://pad.lv/1025478
     targets_with_addresses = set()
 
-    for relid, units in all_relations.iteritems():
+    for relid, units in all_relations.items():
         for unit, relation_settings in units.items():
             if TARGET_ID_KEY in relation_settings:
                 targets_with_addresses.add(relation_settings.get(TARGET_ID_KEY))
     new_all_relations = {}
 
-    for relid, units in all_relations.iteritems():
+    for relid, units in all_relations.items():
         for unit, relation_settings in units.items():
             if relation_settings.get(TARGET_ID_KEY) in targets_with_addresses:
                 if relid not in new_all_relations:
@@ -196,7 +197,7 @@ def main(argv, full_rewrite=False):  # noqa: C901
         status_set("active", "ready")
 
     new_file_set = set()
-    for units in all_relations.itervalues():
+    for units in all_relations.values():
         apply_relation_config(units, all_hosts, new_file_set)
 
     cleanup_leftover_hosts(all_relations)
@@ -253,7 +254,7 @@ def compute_host_prefixes(model_ids):
 
 
 def apply_relation_config(units, all_hosts, new_file_set):  # noqa: C901
-    for relation_settings in units.itervalues():
+    for relation_settings in units.values():
         target_id = relation_settings[TARGET_ID_KEY]
         host_config_path = get_nagios_host_config_path(target_id)
         if os.path.exists(host_config_path) and host_config_path not in new_file_set:
@@ -305,8 +306,8 @@ def apply_relation_config(units, all_hosts, new_file_set):  # noqa: C901
             host.set_attribute("parents", parent_host)
         host.save()
 
-        for mon_family, mons in monitors["monitors"]["remote"].iteritems():
-            for mon_name, mon in mons.iteritems():
+        for mon_family, mons in monitors["monitors"]["remote"].items():
+            for mon_name, mon in mons.items():
                 service_name = "%s-%s" % (target_id, mon_name)
                 service = get_pynag_service(target_id, service_name)
                 try:

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2014-2015 Canonical Limited.
 #
@@ -194,7 +194,7 @@ def sync_helpers(include, src, dest, options=None):
             sync(src, dest, inc, opts)
         elif isinstance(inc, dict):
             # could also do nested dicts here.
-            for k, v in six.iteritems(inc):
+            for k, v in inc.items():
                 if isinstance(v, list):
                     for m in v:
                         inc, opts = extract_options(m, global_options)

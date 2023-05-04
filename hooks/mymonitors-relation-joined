@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # mymonitors-relation-joined - adds monitors.yaml content to relation data
 # Copyright Canonical 2017 Canonical Ltd. All Rights Reserved
 #
@@ -25,6 +25,7 @@ from charmhelpers.core.hookenv import (
     relation_set,
 )
 
+
 def main():
     rel_id = relation_id()
     if rel_id is None:
@@ -33,11 +34,11 @@ def main():
         rels = [rel_id]
 
     with open('monitors.yaml', 'r') as monitors:
-        monitors_yaml=monitors.read()
+        monitors_yaml = monitors.read()
     target_id = local_unit().replace('/', '-')
     target_address = common.get_local_ingress_address('monitors')
 
-    relation_data={
+    relation_data = {
         'monitors': monitors_yaml,
         'target-address': target_address,
         'target-id': target_id

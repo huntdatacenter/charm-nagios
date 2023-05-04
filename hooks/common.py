@@ -149,7 +149,7 @@ def refresh_hostgroups():  # noqa:C901
         except (ValueError, KeyError):
             pass
 
-    for hgroup_name, members in hgroups.iteritems():
+    for hgroup_name, members in hgroups.items():
         if os.path.exists(get_nagios_hostgroup_config_path(hgroup_name)):
             # Skip updating files unrelated to the hook at hand unless they were
             # deliberately removed with the intent of them being rewritten.
@@ -473,7 +473,7 @@ def _replace_in_config(find_me, replacement):
     with open(INPROGRESS_CFG) as cf:
         with tempfile.NamedTemporaryFile(dir=INPROGRESS_DIR, delete=False) as new_cf:
             for line in cf:
-                new_cf.write(line.replace(find_me, replacement))
+                new_cf.write(line.replace(find_me, replacement).encode())
             new_cf.flush()
             os.chmod(new_cf.name, 0o644)
             os.unlink(INPROGRESS_CFG)
@@ -484,7 +484,7 @@ def _commit_in_config(find_me, replacement):
     with open(MAIN_NAGIOS_CFG) as cf:
         with tempfile.NamedTemporaryFile(dir=MAIN_NAGIOS_DIR, delete=False) as new_cf:
             for line in cf:
-                new_cf.write(line.replace(find_me, replacement))
+                new_cf.write(line.replace(find_me, replacement).encode())
             new_cf.flush()
             os.chmod(new_cf.name, 0o644)
             os.unlink(MAIN_NAGIOS_CFG)
@@ -643,5 +643,5 @@ def _get_last_reload_message():
         shell=True,
         stdout=subprocess.PIPE,
     ).communicate()
-    stdout_lines = stdout.splitlines()
+    stdout_lines = stdout.decode().splitlines()
     return stdout_lines[-1].strip() if stdout_lines else None
