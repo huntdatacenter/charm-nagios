@@ -97,11 +97,11 @@ bootstrap:
 
 up: launch mount bootstrap ssh  ## Start a VM
 
-fwd:  ## Forward app port: make app=prometheus port=9090 fwd
+fwd:  ## Forward unit port: make unit=nagios/0 port=80 fwd
 	$(eval VMIP := $(shell multipass exec $(VM_NAME) -- hostname -I | cut -d' ' -f1))
-	echo "Opening browser: http://$(VMIP):$(port)"
-	bash -c "(sleep 1; open 'http://$(VMIP):$(port)') &"
-	multipass exec $(VM_NAME) -- juju ssh $(app)/0 -N -L 0.0.0.0:$(port):0.0.0.0:$(port)
+	echo "Opening browser: http://$(VMIP):8000"
+	bash -c "(sleep 1; open 'http://$(VMIP):8000') &"
+	multipass exec $(VM_NAME) -- juju ssh $(unit) -N -L 0.0.0.0:8000:0.0.0.0:$(port)
 
 down:  ## Stop the VM
 	multipass down $(VM_NAME)
