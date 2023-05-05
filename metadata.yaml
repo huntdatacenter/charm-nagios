@@ -1,9 +1,14 @@
 name: nagios
 summary: Nagios Core 4 monitoring.
-maintainer: HUTN Cloud <cloud@hunt.ntnu.no>
+maintainer: HUNT Cloud <cloud@hunt.ntnu.no>
+summary: Monitoring and management system
 description: |
   Nagios is a monitoring and management system for hosts, services, and
   networks.
+source:
+  - "https://github.com/huntdatacenter/charm-nagios"
+  - "https://code.launchpad.net/charm-nagios"
+issues: "https://bugs.launchpad.net/charm-nagios"
 tags: ["monitoring"]
 series: []
 provides:
