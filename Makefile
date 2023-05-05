@@ -98,6 +98,7 @@ bootstrap:
 up: launch mount bootstrap ssh  ## Start a VM
 
 fwd:  ## Forward unit port: make unit=nagios/0 port=80 fwd
+	$(eval port := 80)
 	$(eval VMIP := $(shell multipass exec $(VM_NAME) -- hostname -I | cut -d' ' -f1))
 	echo "Opening browser: http://$(VMIP):8000"
 	bash -c "(sleep 1; open 'http://$(VMIP):8000') &"
