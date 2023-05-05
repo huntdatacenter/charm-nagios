@@ -87,3 +87,5 @@ open-port 80
 
 # Tell Juju we're running
 status-set active 'ready'
+
+application-version-set "$(dpkg-query --showformat='${Version}' --show nagios4)" || :
